@@ -67,3 +67,19 @@
     @apply bg-background text-foreground;
   }
 }
+@layer utilities {
+  /* Configurações para animação de confetes */
+  .animate-confetti {
+    --confetti-x: 0px;
+    --confetti-y: 0px;
+    animation: confetti 3s ease-in-out forwards;
+  }
+}
+
+/* Esta função irá rodar quando o documento for carregado */
+@media (min-width: 1px) {
+  .animate-confetti {
+    --confetti-x: calc(random(200) * 1px - 100px);
+    --confetti-y: calc(random(200) * 1px - 50px);
+  }
+}

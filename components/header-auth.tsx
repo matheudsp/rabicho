@@ -1,9 +1,9 @@
 import { signOutAction } from "@/app/actions";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import Link from "next/link";
-import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { ChevronDown, LogOutIcon, User2Icon } from "lucide-react";
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -12,58 +12,43 @@ export default async function AuthButton() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!hasEnvVars) {
-    return (
-      <>
-        <div className="flex gap-4 items-center">
-          <div>
-            <Badge
-              variant={"default"}
-              className="font-normal pointer-events-none"
-            >
-              Please update .env.local file with anon key and url
-            </Badge>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              asChild
-              size="sm"
-              variant={"outline"}
-              disabled
-              className="opacity-75 cursor-none pointer-events-none"
-            >
-              <Link href="/sign-in">Sign in</Link>
-            </Button>
-            <Button
-              asChild
-              size="sm"
-              variant={"default"}
-              disabled
-              className="opacity-75 cursor-none pointer-events-none"
-            >
-              <Link href="/sign-up">Sign up</Link>
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
   return user ? (
-    <div className="flex items-center gap-4">
-      Hey, {user.email}!
-      <form action={signOutAction}>
-        <Button type="submit" variant={"outline"}>
-          Sign out
-        </Button>
-      </form>
-    </div>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <div className="flex">
+          <Button variant="outline" className="text-sm md:flex hidden items-center">
+            Olá, {user.email}! <ChevronDown size={24} />
+          </Button>
+          <Button variant="outline" className="text-sm flex md:hidden items-center">
+            Meu perfil <ChevronDown size={24} />
+          </Button>
+        </div>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal >
+        <DropdownMenu.Content
+          className="bg-background border border-border rounded-md shadow-md p-2 z-50"
+          align="end"
+          sideOffset={8}
+        >
+          <DropdownMenu.Item asChild className="p-2 rounded hover:border hover:border-border">
+            <Link href="/profile" className="block flex-row flex gap-1 items-center">Perfil <User2Icon size={18} /></Link>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item asChild onClick={signOutAction} className="">
+            <Button type="submit" variant="destructive" size="sm" className="w-full flex-row flex gap-1 items-center">
+              Sair
+              <LogOutIcon size={18} />
+            </Button>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   ) : (
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"outline"}>
-        <Link href="/sign-in">Sign in</Link>
+        <Link href="/sign-in">Entrar</Link>
       </Button>
       <Button asChild size="sm" variant={"default"}>
-        <Link href="/sign-up">Sign up</Link>
+        <Link href="/sign-up">Cadastrar-se</Link>
       </Button>
     </div>
   );

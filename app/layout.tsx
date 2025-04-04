@@ -1,12 +1,15 @@
 import DeployButton from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
+
 import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import Logo from '../public/images/logo.png'
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "./globals.css";
+import { Toaster } from 'react-hot-toast';
+import CookieConsent from "@/components/cookie-consent";
+import Image from "next/image";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -14,8 +17,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Rabicho",
+  description: "A maneira mais rápida de convidar alguém.",
 };
 
 const geistSans = Geist({
@@ -33,42 +36,51 @@ export default function RootLayout({
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
           disableTransitionOnChange
         >
           <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col gap-20 items-center">
+            <div className="flex-1 w-full flex flex-col items-center">
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>Next.js Supabase Starter</Link>
-                    <div className="flex items-center gap-2">
-                      <DeployButton />
-                    </div>
+                    <Link href={"/home"}><Image src={Logo} alt="Rabicho" width={120} /></Link>
                   </div>
-                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
+                  <HeaderAuth />
                 </div>
               </nav>
-              <div className="flex flex-col gap-20 max-w-5xl p-5">
+              <div className="flex flex-col gap-20 max-w-sm">
                 {children}
               </div>
 
-              <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-                <p>
-                  Powered by{" "}
-                  <a
-                    href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-                    target="_blank"
-                    className="font-bold hover:underline"
-                    rel="noreferrer"
-                  >
-                    Supabase
-                  </a>
-                </p>
-                <ThemeSwitcher />
+              <footer className="w-full border-t mx-auto text-center text-xs py-10">
+                <div className="max-w-5xl mx-auto px-5">
+                  <div className="flex flex-wrap justify-center gap-6 mb-4">
+                    <Link href="/about/terms" className="hover:underline">Termos de Uso</Link>
+                    <Link href="/about/privacy" className="hover:underline">Política de Privacidade</Link>
+                    <Link href="/about/cookies" className="hover:underline">Política de Cookies</Link>
+                    <Link href="/about/support" className="hover:underline">Suporte</Link>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-6">
+                    <p>
+                      Powered by{" "}
+                      <a
+                        href="https://www.instagram.com/matheudsp"
+                        target="_blank"
+                        className="font-bold hover:underline"
+                        rel="noreferrer"
+                      >
+                        matheudsp
+                      </a>
+                    </p>
+                    <p>© {new Date().getFullYear()} Rabicho.</p>
+                    <ThemeSwitcher />
+                  </div>
+                </div>
               </footer>
             </div>
+            <Toaster />
+            <CookieConsent />
           </main>
         </ThemeProvider>
       </body>
