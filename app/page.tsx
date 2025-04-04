@@ -1,22 +1,33 @@
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Check } from "lucide-react";
+import React from "react";
+
+// Define button props interface
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  className?: string;
+  size?: "default" | "sm" | "lg";
+  variant?: "default" | "outline";
+  asChild?: boolean;
+}
 
 // Simple Button component to replace the missing UI component
-const Button = ({ 
+const Button: React.FC<ButtonProps> = ({ 
   children, 
   className = "", 
   size = "default", 
   variant = "default", 
-  asChild = false 
+  asChild = false,
+  ...props
 }) => {
-  const sizeClasses = {
+  const sizeClasses: Record<string, string> = {
     default: "py-2 px-4",
     sm: "py-1 px-3 text-sm",
     lg: "py-3 px-6 text-lg"
   };
   
-  const variantClasses = {
+  const variantClasses: Record<string, string> = {
     default: "bg-blue-600 hover:bg-blue-700 text-white",
     outline: "border border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
   };
@@ -34,14 +45,20 @@ const Button = ({
   }
   
   return (
-    <button className={classes}>
+    <button className={classes} {...props}>
       {children}
     </button>
   );
 };
 
+// Define card props interfaces
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
 // Simple Card component to replace the missing UI component
-const Card = ({ children, className = "", ...props }) => {
+const Card: React.FC<CardProps> = ({ children, className = "", ...props }) => {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden ${className}`} {...props}>
       {children}
@@ -49,7 +66,12 @@ const Card = ({ children, className = "", ...props }) => {
   );
 };
 
-const CardContent = ({ children, className = "", ...props }) => {
+interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const CardContent: React.FC<CardContentProps> = ({ children, className = "", ...props }) => {
   return (
     <div className={`p-6 ${className}`} {...props}>
       {children}
@@ -57,7 +79,7 @@ const CardContent = ({ children, className = "", ...props }) => {
   );
 };
 
-export default function LandingPage() {
+export default function LandingPage(): React.ReactElement {
   return (
     <div className="flex flex-col items-center w-full">
       {/* Hero Section */}
@@ -285,88 +307,9 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
-              <div className="h-48 bg-gradient-to-r from-blue-300 to-teal-300 dark:from-blue-600 dark:to-teal-600"></div>
-              <div className="p-6">
-                <h3 className="font-bold text-lg mb-2">Casamento</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Convites elegantes com RSVP e formulários para preferências de menu.
-                </p>
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
-              <div className="h-48 bg-gradient-to-r from-purple-300 to-indigo-300 dark:from-purple-600 dark:to-indigo-600"></div>
-              <div className="p-6">
-                <h3 className="font-bold text-lg mb-2">Eventos Corporativos</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Convites profissionais com formulários personalizados para eventos empresariais.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="w-full py-12 md:py-24">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="bg-gradient-to-r from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-800 rounded-xl p-8 md:p-12">
-            <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl font-bold mb-4">Pronto para criar convites incríveis?</h2>
-              <p className="text-lg mb-6">
-                Comece agora mesmo e impressione seus convidados com convites digitais personalizados.
-              </p>
-              <Link href="/register" className="py-3 px-6 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors inline-block">
-                Criar meu primeiro convite
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="w-full py-12 md:py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Perguntas frequentes</h2>
-          
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-lg mb-2">Como funciona o pagamento?</h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                O pagamento é feito uma única vez por cada pacote de convites. Você pode escolher entre diferentes opções dependendo da quantidade de convites necessários.
-              </p>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-lg mb-2">Posso personalizar completamente meu convite?</h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Sim! Você pode escolher entre diversos temas, adicionar música de fundo e criar formulários personalizados para seus convidados responderem.
-              </p>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-lg mb-2">Como meus convidados recebem os convites?</h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Após criar seu convite, você receberá um link exclusivo que pode ser compartilhado via WhatsApp, email ou qualquer outra plataforma de mensagens.
-              </p>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-lg mb-2">Por quanto tempo meu convite fica disponível?</h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Seus convites ficam disponíveis por até 6 meses após a data de criação, dando tempo suficiente para todos os seus convidados visualizarem e responderem.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer note */}
-      <div className="text-center text-sm text-gray-500 mt-8 mb-16">
-        <p>Rabicho - A maneira mais rápida de convidar alguém.</p>
-      </div>
     </div>
   );
 }

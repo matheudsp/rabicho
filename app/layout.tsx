@@ -1,4 +1,3 @@
-import DeployButton from "@/components/deploy-button";
 
 import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -49,7 +48,8 @@ export default function RootLayout({
                   <HeaderAuth />
                 </div>
               </nav>
-              <div className="flex flex-col gap-20 max-w-sm">
+              {/* Remove the max-w-sm constraint from here, we'll handle it in page-specific layouts */}
+              <div className="flex flex-col gap-20 w-full">
                 {children}
               </div>
 
