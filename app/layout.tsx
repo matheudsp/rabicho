@@ -1,7 +1,7 @@
 
 import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import Logo from '../public/images/logo.png'
+import Logo from '../public/logo.png'
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
@@ -14,10 +14,12 @@ const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
 
+
 export const metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Rabicho",
   description: "A maneira mais rápida de convidar alguém.",
+ 
 };
 
 const geistSans = Geist({
@@ -31,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
+    <html lang="pt_br" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
