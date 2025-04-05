@@ -36,13 +36,13 @@ CREATE TABLE opcoes (
     FOREIGN KEY (pergunta_id) REFERENCES perguntas(id) ON DELETE CASCADE
 );
 
--- Tabela de Respostas (com convidado_id como UUID e nome_respondente já incluído)
+-- Tabela de Respostas (com convidado_id como TEXT e nome_respondente já incluído)
 CREATE TABLE respostas (
     id SERIAL PRIMARY KEY,
     pergunta_id INT NOT NULL,
     resposta_texto VARCHAR(255),
     resposta_opcao INT,
-    convidado_id UUID NOT NULL,
+    convidado_id TEXT,
     nome_respondente VARCHAR(255),
     FOREIGN KEY (pergunta_id) REFERENCES perguntas(id) ON DELETE CASCADE,
     FOREIGN KEY (resposta_opcao) REFERENCES opcoes(id) ON DELETE SET NULL
@@ -52,15 +52,3 @@ CREATE TABLE respostas (
 CREATE INDEX idx_convite_criado_por ON convites(criado_por);
 CREATE INDEX idx_pergunta_formulario ON perguntas(formulario_id);
 CREATE INDEX idx_resposta_pergunta ON respostas(pergunta_id);
-
--- Alterar o tipo da coluna convidado_id para TEXT (ou VARCHAR) em vez de UUID
-ALTER TABLE respostas 
-DROP CONSTRAINT IF EXISTS respostas_convidado_id_fkey; -- Remove a chave estrangeira se existir
-
--- Alterar o tipo de dados de UUID para TEXT
-ALTER TABLE respostas
-ALTER COLUMN convidado_id TYPE TEXT;
-
--- Remover a restrição NOT NULL (opcional, caso queira permitir valores nulos)
-ALTER TABLE respostas
-ALTER COLUMN convidado_id DROP NOT NULL;

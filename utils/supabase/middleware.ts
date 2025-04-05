@@ -40,10 +40,17 @@ export const updateSession = async (request: NextRequest) => {
     const user = await supabase.auth.getUser();
 
     // protected routes
+    if (request.nextUrl.pathname === "/invite/create-invite" && user.error) {
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+    
     if (request.nextUrl.pathname.startsWith("/home") && user.error) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
-
+    if (request.nextUrl.pathname.startsWith("/profile") && user.error) {
+      return NextResponse.redirect(new URL("/sign-in", request.url));
+    }
+    
     if (request.nextUrl.pathname === "/" && !user.error) {
       return NextResponse.redirect(new URL("/home", request.url));
     }
