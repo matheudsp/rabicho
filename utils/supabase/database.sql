@@ -52,3 +52,15 @@ CREATE TABLE respostas (
 CREATE INDEX idx_convite_criado_por ON convites(criado_por);
 CREATE INDEX idx_pergunta_formulario ON perguntas(formulario_id);
 CREATE INDEX idx_resposta_pergunta ON respostas(pergunta_id);
+
+-- Alterar o tipo da coluna convidado_id para TEXT (ou VARCHAR) em vez de UUID
+ALTER TABLE respostas 
+DROP CONSTRAINT IF EXISTS respostas_convidado_id_fkey; -- Remove a chave estrangeira se existir
+
+-- Alterar o tipo de dados de UUID para TEXT
+ALTER TABLE respostas
+ALTER COLUMN convidado_id TYPE TEXT;
+
+-- Remover a restrição NOT NULL (opcional, caso queira permitir valores nulos)
+ALTER TABLE respostas
+ALTER COLUMN convidado_id DROP NOT NULL;

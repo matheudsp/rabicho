@@ -26,20 +26,20 @@ interface Resposta {
   perguntaId: number;
   resposta_texto?: string;
   resposta_opcao?: number;
-  convidado_id?: string; 
+  convidado_id?: string;
 }
 interface FormErrors {
   [key: string]: string;
 }
 
 export default function ResponderConvite({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params); 
+  const { id } = use(params);
   const router = useRouter();
   const supabase = createClient();
-  
+
   // Usando o ThemeManager
   const { themeOptions, musicOptions, getThemeById, getMusicById } = useThemeManager();
-  
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [convite, setConvite] = useState<any>(null);
@@ -49,15 +49,15 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   const [errors, setErrors] = useState<FormErrors>({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [respondentName, setRespondentName] = useState<string>("");
-  
+
   // Estados para temas e música
-  const [formData, setFormData] = useState<{tema:string, musica: string | null }>({
+  const [formData, setFormData] = useState<{ tema: string, musica: string | null }>({
     tema: "padrao",
     musica: null,
   });
   const [isMusicPlaying, setIsMusicPlaying] = useState<boolean>(false);
   const [showThemeSelector, setShowThemeSelector] = useState<boolean>(false);
-  
+
   // Get current theme
   const currentTheme = getThemeById(formData.tema) || themeOptions[0];
 
@@ -88,12 +88,12 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
         // Removido: if (conviteData.respondido) { ... }
 
         setConvite(conviteData);
-        
+
         // Aplicar tema e música do convite
         if (conviteData.tema) {
           setFormData(prev => ({ ...prev, tema: conviteData.tema }));
         }
-        
+
         if (conviteData.musica) {
           setFormData(prev => ({ ...prev, musica: conviteData.musica }));
           setIsMusicPlaying(true);
@@ -129,7 +129,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
                 .order("id", { ascending: true });
 
               if (opcoesError) throw opcoesError;
-              
+
               return {
                 ...pergunta,
                 opcoes: opcoesData,
@@ -140,7 +140,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
         );
 
         setPerguntas(perguntasCompletas);
-        
+
         // Inicializar o estado de respostas
         setRespostas(
           perguntasCompletas.map((pergunta) => ({
@@ -182,7 +182,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   // Manipular mudanças no nome do respondente
   const handleNameChange = (value: string) => {
     setRespondentName(value);
-    
+
     // Limpar erro do nome
     if (errors['respondent_name']) {
       const newErrors = { ...errors };
@@ -212,15 +212,15 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   // Validar formulário
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     // Validar nome do respondente
     if (!respondentName.trim()) {
       newErrors['respondent_name'] = "Por favor, digite seu nome";
     }
-    
+
     perguntas.forEach((pergunta) => {
       const resposta = respostas.find((r) => r.perguntaId === pergunta.id);
-      
+
       if (pergunta.tipo === "resposta_curta") {
         if (!resposta?.resposta_texto?.trim()) {
           newErrors[`pergunta_${pergunta.id}`] = "Esta pergunta é obrigatória";
@@ -231,7 +231,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
         }
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -246,22 +246,17 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
     setSubmitting(true);
 
     try {
-      // Obter usuário atual (pode ser anônimo)
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      // Gerar um ID aleatório para usuários não autenticados
+      // Isso evita ter que verificar sessão de autenticação
+      const anonUserId = `anon-${crypto.randomUUID()}`;
       
-      if (userError) {
-        throw new Error(`Erro ao obter usuário: ${userError.message}`);
-      }
-      
-      const userId = user?.id || "anonymous";
-
       // Preparar as respostas para inserção
       const respostasParaInserir = respostas.map((resposta) => ({
         pergunta_id: resposta.perguntaId,
         resposta_texto: resposta.resposta_texto || null,
         resposta_opcao: resposta.resposta_opcao || null,
-        convidado_id: userId,
-        nome_respondente: respondentName // Adicionar nome do respondente
+        convidado_id: anonUserId, // Usando ID anônimo para todos os casos
+        nome_respondente: respondentName // Mantendo o nome do respondente
       }));
 
       // Inserir respostas
@@ -272,9 +267,6 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
       if (respostasError) {
         throw new Error(`Erro ao inserir respostas: ${respostasError.message}`);
       }
-
-      // Não marcamos mais o convite como respondido
-      // Removido: const { error: conviteError } = await supabase...
 
       toast.success("Suas respostas foram registradas com sucesso!");
       setFormSubmitted(true);
@@ -314,10 +306,10 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   // Renderizar animações baseadas no tema
   const renderThemeAnimations = () => {
     // Podemos pegar o isDarkMode diretamente do ThemeManager através do theme
-    const isDarkMode = currentTheme.textClass.includes("text-rose-200") || 
-                       currentTheme.textClass.includes("text-indigo-200") || 
-                       currentTheme.textClass.includes("text-amber-200");
-    
+    const isDarkMode = currentTheme.textClass.includes("text-rose-200") ||
+      currentTheme.textClass.includes("text-indigo-200") ||
+      currentTheme.textClass.includes("text-amber-200");
+
     switch (formData.tema) {
       case "romantico":
         return <HeartAnimation isDark={isDarkMode} />;
@@ -341,11 +333,11 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
       </div>
     );
   }
- 
+
   // Renderizar página de formulário
   return (
     <div className={`min-h-screen ${currentTheme.bgClass} ${currentTheme.textClass} flex flex-col`}>
-      
+
       {/* Animações baseadas no tema (não mostrar para o tema padrão) */}
       {formData.tema !== "padrao" && renderThemeAnimations()}
 
@@ -388,7 +380,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
             <h2 className="text-xl font-semibold mb-2">Respostas enviadas com sucesso!</h2>
             <p className="mt-1">Obrigado por responder ao convite.</p>
             <p className="mt-2">Redirecionando...</p>
-            
+
             {formData.tema === "divertido" && <ConfettiExplosion />}
           </div>
         ) : (
@@ -397,7 +389,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
             <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg mb-6 transition-all border border-border transform hover:scale-[1.01] duration-300`}>
               <h2 className="text-lg font-semibold mb-4">{convite.titulo}</h2>
               <p className={`${currentTheme.textClass} opacity-80`}>Você foi convidado(a) a responder este formulário.</p>
-              
+
               {/* Theme and Music display */}
               {(formData.tema !== "padrao" || formData.musica) && (
                 <div className="mt-4 p-2 bg-background/50 rounded-lg text-sm">
@@ -411,9 +403,8 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
             </div>
 
             {/* Campo para nome do respondente */}
-            <div className={`${currentTheme.cardClass} border ${
-              errors['respondent_name'] ? 'border-destructive' : currentTheme.borderClass
-            } rounded-lg p-6 shadow-lg mb-6 transition-all duration-300`}>
+            <div className={`${currentTheme.cardClass} border ${errors['respondent_name'] ? 'border-destructive' : currentTheme.borderClass
+              } rounded-lg p-6 shadow-lg mb-6 transition-all duration-300`}>
               <h3 className={`text-lg font-medium mb-4 ${currentTheme.textClass}`}>
                 Qual é o seu nome?
               </h3>
@@ -436,11 +427,10 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
             {/* Formulário */}
             <div className="space-y-6">
               {perguntas.map((pergunta, index) => (
-                <div 
-                  key={pergunta.id} 
-                  className={`${currentTheme.cardClass} border ${
-                    errors[`pergunta_${pergunta.id}`] ? 'border-destructive' : currentTheme.borderClass
-                  } rounded-lg p-6 shadow-lg transition-all duration-300`}
+                <div
+                  key={pergunta.id}
+                  className={`${currentTheme.cardClass} border ${errors[`pergunta_${pergunta.id}`] ? 'border-destructive' : currentTheme.borderClass
+                    } rounded-lg p-6 shadow-lg transition-all duration-300`}
                 >
                   <h3 className={`text-lg font-medium mb-4 ${currentTheme.textClass}`}>
                     {index + 1}. {pergunta.texto}
@@ -463,15 +453,15 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
                       {pergunta.opcoes?.map((opcao) => {
                         const isSelected = respostas.find(r => r.perguntaId === pergunta.id)?.resposta_opcao === opcao.id;
                         return (
-                          <label 
-                            key={opcao.id} 
+                          <label
+                            key={opcao.id}
                             className={`flex items-center space-x-3 p-3 
                               bg-background
                               border ${isSelected ? currentTheme.borderClass : "border-input"} 
                               rounded-md cursor-pointer hover:bg-accent transition-colors`}
                           >
-                            <input 
-                              type="radio" 
+                            <input
+                              type="radio"
                               name={`pergunta_${pergunta.id}`}
                               checked={isSelected}
                               onChange={() => handleOptionChange(pergunta.id, opcao.id)}
@@ -496,9 +486,8 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
                 <button
                   onClick={submitRespostas}
                   disabled={submitting}
-                  className={`px-6 py-3 ${currentTheme.btnClass} rounded-lg transition-all shadow-lg hover:shadow-xl ${
-                    submitting ? "opacity-70 cursor-not-allowed" : `${currentTheme.btnHoverClass} transform hover:-translate-y-1`
-                  }`}
+                  className={`px-6 py-3 ${currentTheme.btnClass} rounded-lg transition-all shadow-lg hover:shadow-xl ${submitting ? "opacity-70 cursor-not-allowed" : `${currentTheme.btnHoverClass} transform hover:-translate-y-1`
+                    }`}
                 >
                   {submitting ? (
                     <span className="flex items-center">
