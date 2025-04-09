@@ -1,14 +1,19 @@
-// app/server/mercado-pago/handle-payment.ts
+
 import "server-only";
 import { PaymentResponse } from "mercadopago/dist/clients/payment/commonTypes";
 import { createClient } from "@/utils/supabase/server";
 
 export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
   // Os metadados do Mercado Pago são convertidos para snake_case
-  const metadata = paymentData.metadata;
-  const userEmail = metadata.user_email; 
-  const conviteId = metadata.convite_id;
+  const metadata = paymentData.metadata || {};
+  
+  // Extrair os metadados necessários
+  // Mercado Pago converte camelCase para snake_case nos metadados
+  const conviteId = metadata.convite_id; 
   const planoId = metadata.plano_id;
+  const userEmail = metadata.user_email;
+  
+  console.log("Metadados recebidos:", metadata); // Para debug
   
   // Validar se temos o ID do convite
   if (!conviteId) {
@@ -45,9 +50,6 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
     }
     
     console.log(`Pagamento processado com sucesso para o convite ${conviteId}`);
-    
-    // Aqui você poderia adicionar notificações para o usuário, como enviar um email
-    // confirmando o pagamento e informando que o convite está ativo
     
   } catch (error) {
     console.error("Erro ao processar pagamento:", error);

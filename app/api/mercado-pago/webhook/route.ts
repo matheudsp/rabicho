@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     verifyMercadoPagoSignature(request);
 
     const body = await request.json();
+    console.log("Webhook recebido:", body); // Para debug
 
     const { type, data } = body;
 
@@ -17,17 +18,21 @@ export async function POST(request: Request) {
       case "payment":
         const payment = new Payment(mpClient);
         const paymentData = await payment.get({ id: data.id });
+        console.log("Dados do pagamento:", paymentData); // Para debug
+        
         if (
           paymentData.status === "approved" || // Pagamento por cartão OU
           paymentData.date_approved !== null // Pagamento por Pix
         ) {
+          console.log("Processando pagamento aprovado:", {
+            id: paymentData.id,
+            status: paymentData.status,
+            metadata: paymentData.metadata
+          });
+          
           await handleMercadoPagoPayment(paymentData);
         }
         break;
-      // case "subscription_preapproval": Eventos de assinatura
-      //   console.log("Subscription preapproval event");
-      //   console.log(data);
-      //   break;
       default:
         console.log("Unhandled event type:", type);
     }

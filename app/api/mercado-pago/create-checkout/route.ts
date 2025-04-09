@@ -1,4 +1,4 @@
-// app/api/mercado-pago/create-checkout/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { Preference } from "mercadopago";
 import mpClient from "@/lib/mercado-pago";
@@ -17,9 +17,9 @@ export async function POST(req: NextRequest) {
       body: {
         external_reference: conviteId,
         metadata: {
-          conviteId,
-          planoId: planDetails.planoId,
-          userEmail
+          convite_id: conviteId,  // Usar snake_case para garantir consistência
+          plano_id: planDetails.planoId,
+          user_email: userEmail
         },
         ...(userEmail && {
           payer: {
