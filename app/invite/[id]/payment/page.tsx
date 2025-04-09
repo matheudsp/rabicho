@@ -1,3 +1,4 @@
+// app/invite/[id]/payment/page.tsx
 "use client";
 
 import { useState, useEffect, use } from "react";
@@ -15,7 +16,7 @@ interface Plano {
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { createMercadoPagoCheckout } = useMercadoPago();
-  const [plans, setPlans] = useState<Plano[]>([]);
+  const [planos, setPlanos] = useState<Plano[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
@@ -26,13 +27,20 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       try {
         const response = await fetch(`/api/plans`);
         const data = await response.json();
-        setPlans(data);
         
-        // Definir o plano padrão (médio)
-        if (data.length > 0) {
-          // Seleciona o plano do meio se houver mais de um
-          const defaultPlanIndex = Math.min(1, data.length - 1);
-          setSelectedPlan(data[defaultPlanIndex].id);
+        // Verifica se data é um array
+        if (Array.isArray(data)) {
+          setPlanos(data);
+          
+          // Definir o plano padrão (médio)
+          if (data.length > 0) {
+            // Seleciona o plano do meio se houver mais de um
+            const defaultPlanIndex = Math.min(1, data.length - 1);
+            setSelectedPlan(data[defaultPlanIndex].id);
+          }
+        } else {
+          console.error("Dados recebidos não são um array:", data);
+          setPlanos([]); // Inicializa como array vazio para evitar erros
         }
         
         setLoading(false);
@@ -67,6 +75,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       await createMercadoPagoCheckout({
         conviteId: id,
         userEmail: email || undefined,
+        planoId: selectedPlan
       });
     } catch (error) {
       console.error("Erro ao processar pagamento:", error);
@@ -82,32 +91,41 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       </div>
     );
   }
+  
+  // Se não houver planos, mostrar mensagem
+  if (planos.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-lg text-gray-600">Nenhum plano disponível no momento.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Selecione um Plano</h1>
       
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {plans.map((plan) => (
+        {planos.map((plano) => (
           <div 
-            key={plan.id} 
+            key={plano.id} 
             className={cn(
               "border rounded-lg p-6 cursor-pointer transition-all",
-              selectedPlan === plan.id 
+              selectedPlan === plano.id 
                 ? "border-blue-500 bg-blue-50" 
                 : "border-gray-200 hover:border-blue-300"
             )}
-            onClick={() => setSelectedPlan(plan.id)}
+            onClick={() => setSelectedPlan(plano.id)}
           >
-            <h2 className="text-xl font-semibold mb-2">{plan.nome}</h2>
-            <p className="text-gray-600 mb-4">{plan.descricao}</p>
+            <h2 className="text-xl font-semibold mb-2">{plano.nome}</h2>
+            <p className="text-gray-600 mb-4">{plano.descricao}</p>
             <p className="text-3xl font-bold mb-3">
-              R$ {plan.preco.toFixed(2).replace('.', ',')}
+              R$ {plano.preco.toFixed(2).replace('.', ',')}
             </p>
             <ul className="text-sm mb-4">
               <li className="flex items-center mb-1">
                 <span className="mr-2">✓</span>
-                {plan.quantidade_respostas} resposta{plan.quantidade_respostas > 1 ? 's' : ''}
+                {plano.quantidade_respostas} resposta{plano.quantidade_respostas > 1 ? 's' : ''}
               </li>
               <li className="flex items-center mb-1">
                 <span className="mr-2">✓</span>
@@ -117,7 +135,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             <div className="mt-4">
               <div className={cn(
                 "h-4 w-4 rounded-full border-2",
-                selectedPlan === plan.id 
+                selectedPlan === plano.id 
                   ? "border-blue-500 bg-blue-500" 
                   : "border-gray-300"
               )}></div>
