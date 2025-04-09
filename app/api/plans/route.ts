@@ -1,4 +1,4 @@
-// app/api/planos/route.ts
+// app/api/plans/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
@@ -11,8 +11,10 @@ export async function GET() {
     .order('preco');
   
   if (error) {
+    console.error("Supabase error fetching plans:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   
-  return NextResponse.json(data);
+  // Ensure we always return an array
+  return NextResponse.json(data || []);
 }

@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
 
         items: [
           {
-            id: `plano-${planDetails.planoId}`,
-            description: planDetails.planoDescricao || `Plano com ${planDetails.quantidadeRespostas} respostas`,
+            id: conviteId,
+            description: planDetails.planoDescricao || `Convite com ${planDetails.quantidadeRespostas} respostas`,
             title: planDetails.planoNome || "Plano de respostas",
             quantity: 1,
             unit_price: Number(planDetails.preco),
             currency_id: "BRL",
-            category_id: "subscription", 
+            category_id: "payment", 
           },
         ],
         payment_methods: {

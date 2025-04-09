@@ -26,6 +26,16 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     async function fetchPlanos() {
       try {
         const response = await fetch(`/api/plans`);
+        
+        if (!response.ok) {
+          // Handle HTTP errors
+          const errorData = await response.json();
+          console.error("Error response from API:", errorData);
+          setPlanos([]);
+          setLoading(false);
+          return;
+        }
+        
         const data = await response.json();
         
         // Verifica se data é um array
@@ -102,37 +112,23 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Selecione um Plano</h1>
+    <div className="w-full px-4 py-6">
+      <h1 className="text-xl font-bold mb-4">Selecione um Plano</h1>
       
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="flex flex-col gap-4 mb-6">
         {planos.map((plano) => (
           <div 
             key={plano.id} 
             className={cn(
-              "border rounded-lg p-6 cursor-pointer transition-all",
+              "border rounded-lg p-4 cursor-pointer transition-all",
               selectedPlan === plano.id 
                 ? "border-blue-500 bg-blue-50" 
-                : "border-gray-200 hover:border-blue-300"
+                : "border-gray-200"
             )}
             onClick={() => setSelectedPlan(plano.id)}
           >
-            <h2 className="text-xl font-semibold mb-2">{plano.nome}</h2>
-            <p className="text-gray-600 mb-4">{plano.descricao}</p>
-            <p className="text-3xl font-bold mb-3">
-              R$ {plano.preco.toFixed(2).replace('.', ',')}
-            </p>
-            <ul className="text-sm mb-4">
-              <li className="flex items-center mb-1">
-                <span className="mr-2">✓</span>
-                {plano.quantidade_respostas} resposta{plano.quantidade_respostas > 1 ? 's' : ''}
-              </li>
-              <li className="flex items-center mb-1">
-                <span className="mr-2">✓</span>
-                Personalização de convite
-              </li>
-            </ul>
-            <div className="mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold">{plano.nome}</h2>
               <div className={cn(
                 "h-4 w-4 rounded-full border-2",
                 selectedPlan === plano.id 
@@ -140,11 +136,22 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                   : "border-gray-300"
               )}></div>
             </div>
+            
+            <p className="text-gray-600 text-sm mb-3">{plano.descricao}</p>
+            
+            <div className="flex justify-between items-center">
+              <p className="text-2xl font-bold">
+                R$ {plano.preco.toFixed(2).replace('.', ',')}
+              </p>
+              <span className="text-sm text-gray-600">
+                {plano.quantidade_respostas} resposta{plano.quantidade_respostas > 1 ? 's' : ''}
+              </span>
+            </div>
           </div>
         ))}
       </div>
       
-      <div className="mb-6">
+      <div className="mb-5">
         <label htmlFor="email" className="block mb-2 text-sm font-medium">
           Seu e-mail (opcional)
         </label>
@@ -156,7 +163,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           className="w-full p-3 border border-gray-300 rounded-md"
           placeholder="seu@email.com"
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs text-gray-500">
           Enviaremos o recibo de pagamento para este e-mail
         </p>
       </div>
@@ -165,7 +172,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         onClick={handleCheckout}
         disabled={!selectedPlan || paymentProcessing}
         className={cn(
-          "w-full bg-blue-500 text-white px-6 py-3 rounded-md font-medium",
+          "w-full bg-blue-500 text-white py-3 rounded-md font-medium",
           (!selectedPlan || paymentProcessing) ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
         )}
       >
