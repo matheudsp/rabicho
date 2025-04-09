@@ -1,21 +1,25 @@
+// app/api/mercado-pago/create-checkout/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { Preference } from "mercadopago";
 import mpClient from "@/lib/mercado-pago";
+import { getPlanDetails } from "@/app/server/mercado-pago/get-plan-details";
 
 export async function POST(req: NextRequest) {
   const { conviteId, userEmail } = await req.json();
 
   try {
+    // Buscar detalhes do plano no banco de dados
+    const planDetails = await getPlanDetails(conviteId);
+    
     const preference = new Preference(mpClient);
 
     const createdPreference = await preference.create({
       body: {
-        external_reference: conviteId, // IMPORTANTE: Isso aumenta a pontuação da sua integração com o Mercado Pago - É o id da compra no nosso sistema
+        external_reference: conviteId,
         metadata: {
-          conviteId, // O Mercado Pago converte para snake_case, ou seja, testeId vai virar teste_id
-          // userEmail: userEmail,
-          plan: '123'
-          //etc
+          conviteId,
+          planoId: planDetails.planoId,
+          userEmail
         },
         ...(userEmail && {
           payer: {
@@ -25,40 +29,23 @@ export async function POST(req: NextRequest) {
 
         items: [
           {
-            id: "id-do-seu-produto",
-            description: "Descrição do produto",
-            title: "Nome do produto",
+            id: `plano-${planDetails.planoId}`,
+            description: planDetails.planoDescricao || `Plano com ${planDetails.quantidadeRespostas} respostas`,
+            title: planDetails.planoNome || "Plano de respostas",
             quantity: 1,
-            unit_price: 9.99,
+            unit_price: Number(planDetails.preco),
             currency_id: "BRL",
-            category_id: "category", // Recomendado inserir, mesmo que não tenha categoria - Aumenta a pontuação da sua integração com o Mercado Pago
+            category_id: "subscription", 
           },
         ],
         payment_methods: {
-          // Descomente para desativar métodos de pagamento
-          //   excluded_payment_methods: [
-          //     {
-          //       id: "bolbradesco",
-          //     },
-          //     {
-          //       id: "pec",
-          //     },
-          //   ],
-          //   excluded_payment_types: [
-          //     {
-          //       id: "debit_card",
-          //     },
-          //     {
-          //       id: "credit_card",
-          //     },
-          //   ],
-          installments: 6, // Número máximo de parcelas permitidas - calculo feito automaticamente
+          installments: 6,
         },
         auto_return: "approved",
         back_urls: {
           success: `${req.headers.get("origin")}/?status=sucesso`,
           failure: `${req.headers.get("origin")}/?status=falha`,
-          pending: `${req.headers.get("origin")}/api/mercado-pago/pending`, // Criamos uma rota para lidar com pagamentos pendentes
+          pending: `${req.headers.get("origin")}/api/mercado-pago/pending`,
         },
       },
     });
@@ -73,6 +60,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.error();
+    return NextResponse.json({ error: "Falha ao criar checkout" }, { status: 500 });
   }
 }

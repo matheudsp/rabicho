@@ -286,7 +286,7 @@ export default function CreateInvite() {
       }
 
       toast.success("Convite criado com sucesso!");
-      router.push("/home");
+      router.push(`/invite/${conviteId}/payment`);
 
     } catch (error) {
       console.error("Erro:", error);

@@ -98,7 +98,7 @@ export default function HomePage({ convites, userLoggedIn }: HomePageProps) {
                         {new Date(convite.data_criacao).toLocaleDateString('pt-BR')}
                       </span>
                       <span className="text-xs flex items-center gap-1 text-blue-600">
-                        <CheckCircle size={12} /> {convite.respostas_count || 0} resposta(s)
+                        {convite.pago ? (<><CheckCircle size={12} /> {convite.respostas_count || 0} resposta(s)</>) : ('Aguardando pagamento')}
                       </span>
                     </div>
                   </div>

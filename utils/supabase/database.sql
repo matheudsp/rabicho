@@ -11,9 +11,9 @@ CREATE TABLE planos (
 
 -- Inserir os planos padrão
 INSERT INTO planos (nome, descricao, quantidade_respostas, preco) VALUES
-('Básico', '1 convite com direito a 1 resposta', 1, 3.49),
-('Padrão', '1 convite com direito a 10 respostas', 10, 9.90),
-('Premium', '1 convite com direito a 100 respostas', 100, 27.90);
+('Convite Básico', '1 convite com direito a 1 resposta', 1, 3.49),
+('Convite Grupo', '1 convite com direito a 10 respostas', 10, 9.90),
+('Convite Evento', '1 convite com direito a 100 respostas', 100, 27.90);
 
 -- Tabela de Convites (com tema, musica e campos para planos)
 CREATE TABLE convites (
