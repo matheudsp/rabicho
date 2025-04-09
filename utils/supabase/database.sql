@@ -1,6 +1,21 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Tabela de Convites (com tema e musica já incorporados, e nome_destinatario renomeado para titulo)
+-- Tabela de Planos
+CREATE TABLE planos (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    descricao TEXT,
+    quantidade_respostas INT NOT NULL,
+    preco DECIMAL(10, 2) NOT NULL
+);
+
+-- Inserir os planos padrão
+INSERT INTO planos (nome, descricao, quantidade_respostas, preco) VALUES
+('Básico', '1 convite com direito a 1 resposta', 1, 3.49),
+('Padrão', '1 convite com direito a 10 respostas', 10, 9.90),
+('Premium', '1 convite com direito a 100 respostas', 100, 27.90);
+
+-- Tabela de Convites (com tema, musica e campos para planos)
 CREATE TABLE convites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     titulo VARCHAR(255) NOT NULL,
@@ -8,7 +23,11 @@ CREATE TABLE convites (
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     pago BOOLEAN DEFAULT FALSE,
     tema VARCHAR(50) DEFAULT 'padrao',
-    musica VARCHAR(50) DEFAULT NULL
+    musica VARCHAR(50) DEFAULT NULL,
+    plano_id INT,
+    respostas_permitidas INT DEFAULT 0,
+    respostas_utilizadas INT DEFAULT 0,
+    FOREIGN KEY (plano_id) REFERENCES planos(id)
 );
 
 -- Tabela de Formulários
@@ -48,7 +67,38 @@ CREATE TABLE respostas (
     FOREIGN KEY (resposta_opcao) REFERENCES opcoes(id) ON DELETE SET NULL
 );
 
+-- Função para verificar se o convite pode receber mais respostas
+CREATE OR REPLACE FUNCTION verificar_limite_respostas()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Verifica se o convite atingiu o limite de respostas e se está pago
+    IF EXISTS (
+        SELECT 1 FROM convites c
+        WHERE c.id = NEW.convidado_id::uuid
+        AND c.pago = TRUE
+        AND c.respostas_utilizadas < c.respostas_permitidas
+    ) THEN
+        -- Incrementa o contador de respostas utilizadas
+        UPDATE convites
+        SET respostas_utilizadas = respostas_utilizadas + 1
+        WHERE id = NEW.convidado_id::uuid;
+        
+        RETURN NEW;
+    ELSE
+        RAISE EXCEPTION 'Limite de respostas atingido ou convite não pago';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para verificar o limite de respostas antes de inserir uma nova resposta
+CREATE TRIGGER trigger_verificar_limite_respostas
+BEFORE INSERT ON respostas
+FOR EACH ROW
+EXECUTE FUNCTION verificar_limite_respostas();
+
 -- Índices para melhorar a performance
 CREATE INDEX idx_convite_criado_por ON convites(criado_por);
 CREATE INDEX idx_pergunta_formulario ON perguntas(formulario_id);
 CREATE INDEX idx_resposta_pergunta ON respostas(pergunta_id);
+CREATE INDEX idx_convite_plano ON convites(plano_id);
+CREATE INDEX idx_convite_pago ON convites(pago);

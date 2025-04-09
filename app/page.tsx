@@ -13,11 +13,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 // Simple Button component to replace the missing UI component
-const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  className = "", 
-  size = "default", 
-  variant = "default", 
+const Button: React.FC<ButtonProps> = ({
+  children,
+  className = "",
+  size = "default",
+  variant = "default",
   asChild = false,
   ...props
 }) => {
@@ -26,16 +26,16 @@ const Button: React.FC<ButtonProps> = ({
     sm: "py-1 px-3 text-sm",
     lg: "py-3 px-6 text-lg"
   };
-  
+
   const variantClasses: Record<string, string> = {
     default: "bg-blue-600 hover:bg-blue-700 text-white",
     outline: "border border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
   };
-  
+
   const baseClasses = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
-  
+
   const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
-  
+
   if (asChild) {
     return (
       <div className={classes}>
@@ -43,7 +43,7 @@ const Button: React.FC<ButtonProps> = ({
       </div>
     );
   }
-  
+
   return (
     <button className={classes} {...props}>
       {children}
@@ -100,7 +100,7 @@ export default function LandingPage(): React.ReactElement {
             </Link>
           </div>
         </div>
-        
+
         {/* Hero Image */}
         <div className="mt-12 relative w-full max-w-3xl h-64 md:h-96 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950 dark:to-purple-900 rounded-xl overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
@@ -121,7 +121,7 @@ export default function LandingPage(): React.ReactElement {
       <section className="w-full py-12 md:py-16 bg-gray-50 dark:bg-gray-900" id="recursos">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Recursos que transformam seus convites</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card>
               <CardContent>
@@ -137,7 +137,7 @@ export default function LandingPage(): React.ReactElement {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent>
                 <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900 rounded-full w-12 h-12 flex items-center justify-center">
@@ -153,7 +153,7 @@ export default function LandingPage(): React.ReactElement {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent>
                 <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900 rounded-full w-12 h-12 flex items-center justify-center">
@@ -177,18 +177,18 @@ export default function LandingPage(): React.ReactElement {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-6">Planos acessíveis para qualquer ocasião</h2>
           <p className="text-center text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-12">
-            Preços simples e transparentes baseados na quantidade de convites que você precisa enviar.
+            Preços simples e transparentes baseados na quantidade de pessoas que você precisa convidar.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <Card className="border-2 border-gray-200 hover:border-blue-500 transition-all">
               <CardContent>
                 <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium mb-2">Pacote Básico</h3>
+                  <h3 className="text-lg font-medium mb-2">Convite Básico</h3>
                   <div className="text-4xl font-bold">R$ 3,90</div>
                   <p className="text-sm text-gray-500 mt-1">por convite</p>
                 </div>
-                
+
                 <ul className="space-y-3">
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2" />
@@ -196,80 +196,11 @@ export default function LandingPage(): React.ReactElement {
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Tema padrão</span>
+                    <span>Todos os temas</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Formulário básico</span>
-                  </li>
-                </ul>
-                
-                <div className="mt-6">
-                  <Link href="/register?plan=basic" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-                    Escolher plano
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-blue-600 relative">
-              <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">Popular</span>
-              </div>
-              <CardContent>
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium mb-2">Pacote Grupo</h3>
-                  <div className="text-4xl font-bold">R$ 9,90</div>
-                  <p className="text-sm text-gray-500 mt-1">até 10 convites</p>
-                </div>
-                
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>10 convites personalizados</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Temas premium</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Música personalizada</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Formulários avançados</span>
-                  </li>
-                </ul>
-                
-                <div className="mt-6">
-                  <Link href="/register?plan=group" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-                    Escolher plano
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-gray-200 hover:border-blue-500 transition-all">
-              <CardContent>
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium mb-2">Pacote Evento</h3>
-                  <div className="text-4xl font-bold">R$ 19,90</div>
-                  <p className="text-sm text-gray-500 mt-1">até 100 convites</p>
-                </div>
-                
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>100 convites personalizados</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Todos os temas + personalizado</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Biblioteca completa de músicas</span>
+                    <span>Biblioteca músicas</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2" />
@@ -280,8 +211,69 @@ export default function LandingPage(): React.ReactElement {
                     <span>Relatório de respostas</span>
                   </li>
                 </ul>
-                
+
                 <div className="mt-6">
+                  <Link href="/register?plan=basic" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
+                    Escolher plano
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-blue-600 relative">
+              <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">Popular</span>
+              </div>
+              <CardContent className="flex-col flex justify-between">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-medium mb-2">Convite Grupo</h3>
+                  <div className="text-4xl font-bold">R$ 9,90</div>
+                  <p className="text-sm text-gray-500 mt-1">até 10 respostas</p>
+                </div>
+
+                <ul className="space-y-3">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2" />
+                    <span>Todos os recursos do convite Básico</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2" />
+                    <span>10 convites personalizados</span>
+                  </li>
+
+                  
+                </ul>
+
+                <div className="mt-6">
+                  <Link href="/register?plan=group" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
+                    Escolher plano
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-gray-200 hover:border-blue-500 transition-all">
+              <CardContent>
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-medium mb-2">Convite Evento</h3>
+                  <div className="text-4xl font-bold">R$ 19,90</div>
+                  <p className="text-sm text-gray-500 mt-1">até 100 respostas</p>
+                </div>
+
+                <ul className="space-y-3">
+                <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2" />
+                    <span>Todos recursos do plano Grupo</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2" />
+                    <span>100 convites personalizados</span>
+                  </li>
+                 
+                
+                </ul>
+
+                <div className="mt-6 flex self-end">
                   <Link href="/register?plan=event" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
                     Escolher plano
                   </Link>
@@ -296,7 +288,7 @@ export default function LandingPage(): React.ReactElement {
       <section className="w-full py-12 md:py-16 bg-gray-50 dark:bg-gray-900" id="exemplos">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Exemplos de convites</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
               <div className="h-48 bg-gradient-to-r from-pink-300 to-red-300 dark:from-pink-600 dark:to-red-600"></div>
