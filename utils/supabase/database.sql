@@ -13,7 +13,7 @@ CREATE TABLE planos (
 INSERT INTO planos (nome, descricao, quantidade_respostas, preco) VALUES
 ('Convite Básico', '1 convite com direito a 1 resposta', 1, 3.49),
 ('Convite Grupo', '1 convite com direito a 10 respostas', 10, 9.90),
-('Convite Evento', '1 convite com direito a 100 respostas', 100, 27.90);
+('Convite Evento', '1 convite com direito a 100 respostas', 100, 19.90);
 
 -- Tabela de Convites (com tema, musica e campos para planos)
 CREATE TABLE convites (
@@ -67,34 +67,6 @@ CREATE TABLE respostas (
     FOREIGN KEY (resposta_opcao) REFERENCES opcoes(id) ON DELETE SET NULL
 );
 
--- Função para verificar se o convite pode receber mais respostas
-CREATE OR REPLACE FUNCTION verificar_limite_respostas()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Verifica se o convite atingiu o limite de respostas e se está pago
-    IF EXISTS (
-        SELECT 1 FROM convites c
-        WHERE c.id = NEW.convidado_id::uuid
-        AND c.pago = TRUE
-        AND c.respostas_utilizadas < c.respostas_permitidas
-    ) THEN
-        -- Incrementa o contador de respostas utilizadas
-        UPDATE convites
-        SET respostas_utilizadas = respostas_utilizadas + 1
-        WHERE id = NEW.convidado_id::uuid;
-        
-        RETURN NEW;
-    ELSE
-        RAISE EXCEPTION 'Limite de respostas atingido ou convite não pago';
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger para verificar o limite de respostas antes de inserir uma nova resposta
-CREATE TRIGGER trigger_verificar_limite_respostas
-BEFORE INSERT ON respostas
-FOR EACH ROW
-EXECUTE FUNCTION verificar_limite_respostas();
 
 -- Índices para melhorar a performance
 CREATE INDEX idx_convite_criado_por ON convites(criado_por);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Check } from "lucide-react";
 import React from "react";
+import ConvitesDemo from "@/components/convitesDemo";
 
 // Define button props interface
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -185,7 +186,7 @@ export default function LandingPage(): React.ReactElement {
               <CardContent>
                 <div className="text-center mb-6">
                   <h3 className="text-lg font-medium mb-2">Convite Básico</h3>
-                  <div className="text-4xl font-bold">R$ 3,90</div>
+                  <div className="text-4xl font-bold">R$ 3,49</div>
                   <p className="text-sm text-gray-500 mt-1">por convite</p>
                 </div>
 
@@ -289,16 +290,8 @@ export default function LandingPage(): React.ReactElement {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Exemplos de convites</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
-              <div className="h-48 bg-gradient-to-r from-pink-300 to-red-300 dark:from-pink-600 dark:to-red-600"></div>
-              <div className="p-6">
-                <h3 className="font-bold text-lg mb-2">Festa de Aniversário</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Convites coloridos e divertidos para celebrações de aniversário.
-                </p>
-              </div>
-            </div>
+          <div className="flex justify-center items-center">
+           <ConvitesDemo />
           </div>
         </div>
       </section>
