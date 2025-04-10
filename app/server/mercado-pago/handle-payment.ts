@@ -61,7 +61,8 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
           throw new Error(`Não foi possível obter as informações do plano ou do convite`);
         }
         
-        quantidadeRespostas = convite.planos?.quantidade_respostas;
+        // Corrigido: planos é um array, precisamos acessar o primeiro elemento
+        quantidadeRespostas = convite.planos?.[0]?.quantidade_respostas;
       } else {
         quantidadeRespostas = plano.quantidade_respostas;
       }
@@ -82,22 +83,27 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
         throw new Error(`Convite com ID ${conviteId} não encontrado`);
       }
       
-      quantidadeRespostas = convite.planos?.quantidade_respostas;
+      // Corrigido: planos é um array, precisamos acessar o primeiro elemento
+      quantidadeRespostas = convite.planos?.[0]?.quantidade_respostas;
     }
     
     if (!quantidadeRespostas) {
       throw new Error(`Não foi possível determinar a quantidade de respostas permitidas`);
     }
     
+    // Adicionando logs para depuração
+    console.log(`Atualizando convite ${conviteId} com: pago=true, respostas_permitidas=${quantidadeRespostas}`);
+    
     // Atualizar o convite como pago e definir a quantidade de respostas permitidas
-    const { error: updateError } = await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from('convites')
       .update({
         pago: true,
         respostas_permitidas: quantidadeRespostas,
         respostas_utilizadas: 0 // Resetar caso já tenha algum valor
       })
-      .eq('id', conviteId);
+      .eq('id', conviteId)
+      .select(); // Adicionando .select() para retornar os dados atualizados
     
     if (updateError) {
       console.error(`Erro ao atualizar convite ${conviteId}:`, updateError);
@@ -105,7 +111,7 @@ export async function handleMercadoPagoPayment(paymentData: PaymentResponse) {
     }
     
     console.log(`Pagamento processado com sucesso para o convite ${conviteId}`);
-    console.log(`Convite atualizado: pago=true, respostas_permitidas=${quantidadeRespostas}, respostas_utilizadas=0`);
+    console.log(`Convite atualizado:`, updateData);
     
   } catch (error) {
     console.error("Erro ao processar pagamento:", error);
