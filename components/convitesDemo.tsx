@@ -60,7 +60,7 @@ export default function ConvitesDemo() {
 
   // Componente para exibir o preview de um convite específico
   const ConvitePreview = () => (
-    <div className={`p-4 md:p-6 rounded-lg shadow-md border ${activeConviteData.borderClass} ${activeConviteData.bgClass} ${activeConviteData.textClass} w-full max-w-md mx-auto mt-4 md:mt-6`}>
+    <div className={`p-4 md:p-6 rounded-lg shadow-md border ${activeConviteData.borderClass} ${activeConviteData.bgClass} ${activeConviteData.textClass} w-full mx-auto mt-4 md:mt-6`}>
       <div className="flex justify-between items-start">
         <div className="mr-3 md:mr-4">
           {activeConviteData.icon}
@@ -94,9 +94,9 @@ export default function ConvitesDemo() {
         </div>
       </div>
 
-      <div className="mt-6 md:mt-8 border-t pt-4 border-dashed border-gray-300 w-full">
+      <div className="mt-6 md:mt-8 border-t pt-4 border-dashed border-border w-full">
         <Link href={`/invite/${activeConviteData.id}/response`} >
-          <div className="w-full flex justify-center items-center py-2 px-4 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors text-sm md:text-base">
+          <div className="w-full flex justify-center items-center py-2 px-4 bg-background text-foreground border border-border rounded hover:bg-background/70 transition-colors text-sm md:text-base">
             Ver convite
           </div>
 
@@ -106,16 +106,16 @@ export default function ConvitesDemo() {
   );
 
   return (
-    <div className="p-2 md:p-4 w-full">
+    <div className="p-4 md:p-6  w-full ">
       <h1 className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">Demonstração de Convites</h1>
 
       {/* Botões de seleção para telas maiores */}
-      <div className="hidden md:flex justify-center space-x-4 mb-6 md:mb-8">
+      <div className="hidden md:flex justify-center space-x-4 mb-6">
         <button
           onClick={() => setActiveConvite('jantar')}
           className={`px-4 py-2 rounded-lg ${activeConvite === 'jantar'
             ? 'bg-indigo-100 text-indigo-800 font-medium'
-            : 'bg-gray-100 hover:bg-gray-200'}`}
+            : 'bg-background border border-border hover:bg-foreground/10 hover:text-foreground/80'}`}
         >
           Jantar (Básico)
         </button>
@@ -123,7 +123,7 @@ export default function ConvitesDemo() {
           onClick={() => setActiveConvite('halloween')}
           className={`px-4 py-2 rounded-lg ${activeConvite === 'halloween'
             ? 'bg-orange-100 text-orange-800 font-medium'
-            : 'bg-gray-100 hover:bg-gray-200'}`}
+            : 'bg-background border border-border hover:bg-foreground/10 hover:text-foreground/80'}`}
         >
           Halloween (Grupo)
         </button>
@@ -131,7 +131,7 @@ export default function ConvitesDemo() {
           onClick={() => setActiveConvite('casamento')}
           className={`px-4 py-2 rounded-lg ${activeConvite === 'casamento'
             ? 'bg-rose-100 text-rose-800 font-medium'
-            : 'bg-gray-100 hover:bg-gray-200'}`}
+            : 'bg-background border border-border hover:bg-foreground/10 hover:text-foreground/80'}`}
         >
           Casamento (Evento)
         </button>
@@ -169,8 +169,8 @@ export default function ConvitesDemo() {
 
       <ConvitePreview />
 
-      <div className="mt-4 md:mt-6 bg-gray-50 p-3 md:p-4 rounded-lg w-full max-w-md mx-auto text-xs md:text-sm">
-        <p className="text-gray-600">
+      <div className="mt-4 md:mt-6 bg-background border border-border p-3 md:p-4 rounded-lg w-full mx-auto text-xs md:text-sm">
+        <p className="text-foreground/80">
           <strong>Informações do plano:</strong><br />
           {activeConvite === 'jantar' && 'Convite Básico - Permite 1 resposta. Ideal para pequenos eventos pessoais.'}
           {activeConvite === 'halloween' && 'Convite Grupo - Permite 10 respostas. Perfeito para festas e reuniões.'}

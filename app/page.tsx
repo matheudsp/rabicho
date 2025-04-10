@@ -125,7 +125,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="w-full bg-gradient-to-b from-white to-gray-50">
+    <div className="w-full bg-gradient-to-b from-background to-gray-50 dark:to-gray-800">
       {/* Confetti animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
@@ -135,8 +135,8 @@ export default function Home() {
       
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-20">
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#9d261e]/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-[#9d261e]/5 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#9d261e]/10 dark:bg-[#9d261e]/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-[#9d261e]/5 dark:bg-[#9d261e]/20 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
@@ -146,10 +146,10 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+                <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-gray-50 leading-tight">
                   Convites que <span className="text-[#9d261e]">encantam</span>, respostas que <span className="text-[#9d261e]">simplificam</span>
                 </h1>
-                <p className="mt-6 text-lg md:text-xl text-gray-600">
+                <p className="mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-300">
                   Crie convites digitais memoráveis para qualquer ocasião e gerencie suas confirmações em um só lugar.
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4">
@@ -174,7 +174,7 @@ export default function Home() {
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#9d261e]/20 to-orange-300/20 rounded-xl blur-xl" />
-                <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
+                <div className="relative bg-background/90 border-border rounded-xl shadow-xl overflow-hidden border">
                   <div className="p-2">
                     <ConvitesDemo />
                   </div>
@@ -194,33 +194,33 @@ export default function Home() {
           
           {/* Stats */}
           <motion.div
-            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 bg-white p-6 rounded-xl shadow-lg"
+            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 bg-background border-border border p-6 rounded-xl shadow-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <div className="text-center">
               <p className="text-3xl md:text-4xl font-bold text-[#9d261e]">+Fácil</p>
-              <p className="text-gray-600 mt-1">de gerenciar</p>
+              <p className="text-gray-600  dark:text-gray-300 mt-1">de gerenciar</p>
             </div>
             <div className="text-center">
               <p className="text-3xl md:text-4xl font-bold text-[#9d261e]">+Barato</p>
-              <p className="text-gray-600 mt-1">que o convite convecional</p>
+              <p className="text-gray-600  dark:text-gray-300 mt-1">que o convite convecional</p>
             </div>
             <div className="text-center">
               <p className="text-3xl md:text-4xl font-bold text-[#9d261e] ">+Completo</p>
-              <p className="text-gray-600 mt-1">com respostas</p>
+              <p className="text-gray-600  dark:text-gray-300 mt-1">com respostas</p>
             </div>
             <div className="text-center">
               <p className="text-3xl md:text-4xl font-bold text-[#9d261e]">+3</p>
-              <p className="text-gray-600 mt-1">Temas</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Temas</p>
             </div>
           </motion.div>
         </div>
       </section>
       
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4 max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -229,8 +229,8 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Simplifique seus convites</h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">Simplifique seus convites</h2>
+            <p className="mt-4 text-lg text-foreground/60 max-w-2xl mx-auto">
               O Rabicho transforma a maneira como você cria e gerencia convites para seus eventos especiais.
             </p>
           </motion.div>
@@ -239,7 +239,7 @@ export default function Home() {
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                className={`rounded-xl p-6 cursor-pointer transition-all duration-300 ${index === activeFeature ? feature.color : 'bg-white'} ${index === activeFeature ? 'text-white' : 'text-gray-800'} shadow-lg`}
+                className={`rounded-xl p-6 cursor-pointer transition-all duration-300 ${index === activeFeature ? feature.color : 'bg-background'} ${index === activeFeature ? 'text-white' : 'text-foreground/80'} border border-border shadow-lg`}
                 onClick={() => setActiveFeature(index)}
                 whileHover={{ scale: 1.03 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -251,7 +251,7 @@ export default function Home() {
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                <p className={`${index === activeFeature ? 'text-white/90' : 'text-gray-600'}`}>{feature.description}</p>
+                <p className={`${index === activeFeature ? 'text-white/90' : 'text-foreground/50'}`}>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -261,7 +261,7 @@ export default function Home() {
      
       
       {/* Pricing Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4 max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -270,8 +270,8 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Convites para todas as ocasiões</h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">Convites para todas as ocasiões</h2>
+            <p className="mt-4 text-lg text-foreground/60 max-w-2xl mx-auto">
               Escolha o convite perfeito para o seu evento, desde pequenos encontros até grandes celebrações.
             </p>
           </motion.div>
@@ -280,7 +280,7 @@ export default function Home() {
             {plans.map((plan, index) => (
               <motion.div
                 key={index}
-                className={`rounded-xl p-6 ${plan.highlighted ? 'bg-gradient-to-b from-[#9d261e]/95 to-[#9d261e] text-white ring-4 ring-[#9d261e]/20' : 'bg-white text-gray-800'} shadow-xl relative`}
+                className={`rounded-xl p-6 ${plan.highlighted ? 'bg-gradient-to-b from-[#9d261e]/95 to-[#9d261e] text-white ring-4 ring-[#9d261e]/20' : 'bg-backgrund text-foreground/80'} shadow-xl border border-border relative`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -300,7 +300,7 @@ export default function Home() {
                   <span className="text-3xl font-bold">{plan.price}</span>
                   {plan.period && <span className="text-sm opacity-80">{plan.period}</span>}
                 </div>
-                <p className={`mb-6 ${plan.highlighted ? 'text-white/80' : 'text-gray-600'}`}>{plan.description}</p>
+                <p className={`mb-6 ${plan.highlighted ? 'text-white/80' : 'text-foreground/60'}`}>{plan.description}</p>
                 
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, i) => (
