@@ -9,6 +9,7 @@ import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 import CookieConsent from "@/components/cookie-consent";
 import Image from "next/image";
+import Footer from "@/components/ui/Footer";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -19,7 +20,7 @@ export const metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Rabicho",
   description: "A maneira mais rápida de convidar alguém.",
- 
+
 };
 
 const geistSans = Geist({
@@ -54,32 +55,8 @@ export default function RootLayout({
               <div className="flex flex-col gap-20 w-full">
                 {children}
               </div>
+              <Footer />
 
-              <footer className="w-full border-t mx-auto text-center text-xs py-10">
-                <div className="max-w-5xl mx-auto px-5">
-                  <div className="flex flex-wrap justify-center gap-6 mb-4">
-                    <Link href="/about/terms" className="hover:underline">Termos de Uso</Link>
-                    <Link href="/about/privacy" className="hover:underline">Política de Privacidade</Link>
-                    <Link href="/about/cookies" className="hover:underline">Política de Cookies</Link>
-                    <Link href="/about/support" className="hover:underline">Suporte</Link>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-6">
-                    <p>
-                      Powered by{" "}
-                      <a
-                        href="https://www.instagram.com/matheudsp"
-                        target="_blank"
-                        className="font-bold hover:underline"
-                        rel="noreferrer"
-                      >
-                        matheudsp
-                      </a>
-                    </p>
-                    <p>© {new Date().getFullYear()} Rabicho.</p>
-                    <ThemeSwitcher />
-                  </div>
-                </div>
-              </footer>
             </div>
             <Toaster />
             <CookieConsent />

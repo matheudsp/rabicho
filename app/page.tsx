@@ -1,298 +1,362 @@
-import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Check } from "lucide-react";
-import React from "react";
-import ConvitesDemo from "@/components/convitesDemo";
+'use client'
 
-// Define button props interface
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  className?: string;
-  size?: "default" | "sm" | "lg";
-  variant?: "default" | "outline";
-  asChild?: boolean;
-}
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Gift, Send, Calendar, Users, Star, Check, Sparkles } from 'lucide-react';
+import ConvitesDemo from '@/components/convitesDemo';
+import Image from 'next/image';
+import Link from 'next/link';
 
-// Simple Button component to replace the missing UI component
-const Button: React.FC<ButtonProps> = ({
-  children,
-  className = "",
-  size = "default",
-  variant = "default",
-  asChild = false,
-  ...props
-}) => {
-  const sizeClasses: Record<string, string> = {
-    default: "py-2 px-4",
-    sm: "py-1 px-3 text-sm",
-    lg: "py-3 px-6 text-lg"
-  };
+export default function Home() {
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+  
+  // Auto-rotate features
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % 4);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const variantClasses: Record<string, string> = {
-    default: "bg-blue-600 hover:bg-blue-700 text-white",
-    outline: "border border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-  };
+  // Trigger confetti animation when page loads
+  useEffect(() => {
+    setTimeout(() => {
+      setShowConfetti(true);
+    }, 500);
+  }, []);
 
-  const baseClasses = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
-
-  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
-
-  if (asChild) {
+  // Generate confetti elements
+  const confettiColors = ['#9d261e', '#e63946', '#ffb703', '#219ebc', '#8338ec'];
+  const confettiElements = Array.from({ length: 40 }).map((_, i) => {
+    const size = Math.random() * 10 + 5;
+    const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+    const delay = Math.random() * 1;
+    const duration = 2 + Math.random() * 2;
+    const rotation = Math.random() * 360;
+    
     return (
-      <div className={classes}>
-        {children}
-      </div>
+      <motion.div
+        key={i}
+        className="absolute"
+        initial={{ 
+          top: "50%", 
+          left: "50%",
+          rotate: 0,
+          opacity: 0
+        }}
+        animate={{ 
+          top: `${Math.random() * 100}%`,
+          left: `${Math.random() * 100}%`,
+          rotate: rotation,
+          opacity: [0, 1, 1, 0],
+          scale: [0, 1, 1, 0]
+        }}
+        transition={{ 
+          duration: duration,
+          delay: delay,
+          ease: "easeOut"
+        }}
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: color,
+          borderRadius: Math.random() > 0.5 ? '50%' : '0%',
+        }}
+      />
     );
-  }
+  });
+
+  const features = [
+    {
+      title: "Convites Personalizados",
+      description: "Crie convites digitais exclusivos para qualquer ocasião com temas personalizados.",
+      icon: <Gift className="w-8 h-8 text-white" />,
+      color: "bg-gradient-to-br from-red-500 to-orange-500"
+    },
+    {
+      title: "Controle de Convidados",
+      description: "Gerencie suas listas de convidados e acompanhe as confirmações em tempo real.",
+      icon: <Users className="w-8 h-8 text-white" />,
+      color: "bg-gradient-to-br from-blue-500 to-indigo-500"
+    },
+    {
+      title: "Envio Simplificado",
+      description: "Compartilhe seus convites por WhatsApp, email ou redes sociais com apenas um clique.",
+      icon: <Send className="w-8 h-8 text-white" />,
+      color: "bg-gradient-to-br from-green-500 to-emerald-500"
+    },
+    {
+      title: "Lembretes Automáticos",
+      description: "Configure lembretes para seus convidados não esquecerem do seu evento especial.",
+      icon: <Calendar className="w-8 h-8 text-white" />,
+      color: "bg-gradient-to-br from-purple-500 to-pink-500"
+    }
+  ];
+
+  const plans = [
+    {
+      name: "Básico",
+      price: "R$ 3,49",
+      period: "/convite",
+      description: "Perfeito para um jantar",
+      features: ["1 convite", "Até 1 convidados", "3 temas", "Formulários personalizados", "Estatísticas de visualização"],
+      cta: "Comprar",
+      highlighted: false
+    },
+    {
+      name: "Grupo",
+      price: "R$ 9,90",
+      period: "/convite",
+      description: "Ideal para eventos regulares",
+      features: ["1 convite", "Até 10 convidados", "Todos os temas", "Formulários personalizados", "Estatísticas de visualização"],
+      cta: "Comprar",
+      highlighted: true
+    },
+    {
+      name: "Evento",
+      price: "R$ 19,90",
+      period: "/convite",
+      description: "Para ocasiões especiais",
+      features: ["1 convite", "Até 100 convidados", "Todos os temas", "Formulários personalizados", "Estatísticas de visualização"],
+      cta: "Comprar",
+      highlighted: false
+    }
+  ];
 
   return (
-    <button className={classes} {...props}>
-      {children}
-    </button>
-  );
-};
-
-// Define card props interfaces
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  className?: string;
-}
-
-// Simple Card component to replace the missing UI component
-const Card: React.FC<CardProps> = ({ children, className = "", ...props }) => {
-  return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden ${className}`} {...props}>
-      {children}
-    </div>
-  );
-};
-
-interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  className?: string;
-}
-
-const CardContent: React.FC<CardContentProps> = ({ children, className = "", ...props }) => {
-  return (
-    <div className={`p-6 ${className}`} {...props}>
-      {children}
-    </div>
-  );
-};
-
-export default function LandingPage(): React.ReactElement {
-  return (
-    <div className="flex flex-col items-center w-full">
+    <div className="w-full bg-gradient-to-b from-white to-gray-50">
+      {/* Confetti animation */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {confettiElements}
+        </div>
+      )}
+      
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 flex flex-col items-center text-center px-4">
-        <div className="max-w-3xl mx-auto space-y-4">
-          <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-            Convites digitais personalizados para suas ocasiões especiais
-          </h1>
-          <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-            Crie convites únicos com temas personalizados, música ambiente e formulários interativos para seus convidados.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/register" className="py-3 px-6 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-              Começar agora
-            </Link>
-            <Link href="#exemplos" className="py-3 px-6 text-lg border border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 rounded-md font-medium transition-colors">
-              Ver exemplos
-            </Link>
-          </div>
-        </div>
-
-        {/* Hero Image */}
-        <div className="mt-12 relative w-full max-w-3xl h-64 md:h-96 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950 dark:to-purple-900 rounded-xl overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="p-6 bg-white/90 dark:bg-black/80 rounded-lg shadow-lg max-w-md text-center">
-              <h3 className="text-xl font-bold mb-2">Convite para Festa de Aniversário</h3>
-              <p className="mb-4">Você está convidado para celebrar comigo!</p>
-              <div className="flex justify-center">
-                <Link href="#" className="py-1 px-3 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-                  Confirmar presença
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="w-full py-12 md:py-16 bg-gray-50 dark:bg-gray-900" id="recursos">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Recursos que transformam seus convites</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent>
-                <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900 rounded-full w-12 h-12 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                    <line x1="4" x2="4" y1="22" y2="15"></line>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Temas Personalizados</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Escolha entre diversos temas ou personalize um exclusivo para sua ocasião especial.
+      <section className="relative overflow-hidden pt-16 pb-20">
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#9d261e]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-[#9d261e]/5 rounded-full blur-3xl" />
+        
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            <div className="flex-1">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+                  Convites que <span className="text-[#9d261e]">encantam</span>, respostas que <span className="text-[#9d261e]">simplificam</span>
+                </h1>
+                <p className="mt-6 text-lg md:text-xl text-gray-600">
+                  Crie convites digitais memoráveis para qualquer ocasião e gerencie suas confirmações em um só lugar.
                 </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent>
-                <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900 rounded-full w-12 h-12 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
-                    <path d="M9 18V5l12-2v13"></path>
-                    <circle cx="6" cy="18" r="3"></circle>
-                    <circle cx="18" cy="16" r="3"></circle>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Música Ambiente</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Adicione uma trilha sonora ao seu convite para criar a atmosfera perfeita.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent>
-                <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900 rounded-full w-12 h-12 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Formulários Interativos</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Crie perguntas personalizadas para seus convidados e colete todas as respostas em um só lugar.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="w-full py-12 md:py-24" id="precos">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-6">Planos acessíveis para qualquer ocasião</h2>
-          <p className="text-center text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-12">
-            Preços simples e transparentes baseados na quantidade de pessoas que você precisa convidar.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="border-2 border-gray-200 hover:border-blue-500 transition-all">
-              <CardContent>
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium mb-2">Convite Básico</h3>
-                  <div className="text-4xl font-bold">R$ 3,49</div>
-                  <p className="text-sm text-gray-500 mt-1">por convite</p>
-                </div>
-
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>1 convite personalizado</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Todos os temas</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Biblioteca músicas</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Formulários ilimitados</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Relatório de respostas</span>
-                  </li>
-                </ul>
-
-                <div className="mt-6">
-                  <Link href="/register?plan=basic" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-                    Escolher plano
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-blue-600 relative">
-              <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">Popular</span>
-              </div>
-              <CardContent className="flex-col flex justify-between">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium mb-2">Convite Grupo</h3>
-                  <div className="text-4xl font-bold">R$ 9,90</div>
-                  <p className="text-sm text-gray-500 mt-1">até 10 respostas</p>
-                </div>
-
-                <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Todos os recursos do convite Básico</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>10 convites personalizados</span>
-                  </li>
-
+                <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link href="/sign-up" className="bg-[#9d261e] text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 shadow-lg shadow-[#9d261e]/20">
+                      Começar Grátis <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </motion.div>
                   
-                </ul>
-
-                <div className="mt-6">
-                  <Link href="/register?plan=group" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-                    Escolher plano
-                  </Link>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-gray-200 hover:border-blue-500 transition-all">
-              <CardContent>
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium mb-2">Convite Evento</h3>
-                  <div className="text-4xl font-bold">R$ 19,90</div>
-                  <p className="text-sm text-gray-500 mt-1">até 100 respostas</p>
+              </motion.div>
+            </div>
+            
+            <motion.div 
+              className="flex-1"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#9d261e]/20 to-orange-300/20 rounded-xl blur-xl" />
+                <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
+                  <div className="p-2">
+                    <ConvitesDemo />
+                  </div>
                 </div>
-
-                <ul className="space-y-3">
-                <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>Todos recursos do plano Grupo</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2" />
-                    <span>100 convites personalizados</span>
-                  </li>
-                 
                 
-                </ul>
-
-                <div className="mt-6 flex self-end">
-                  <Link href="/register?plan=event" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
-                    Escolher plano
-                  </Link>
+                {/* Floating elements */}
+                <motion.div 
+                  className="absolute -top-5 -right-5 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-medium"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Sparkles className="w-4 h-4 inline mr-1" /> Novo!
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
+          
+          {/* Stats */}
+          <motion.div
+            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 bg-white p-6 rounded-xl shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <div className="text-center">
+              <p className="text-3xl md:text-4xl font-bold text-[#9d261e]">+Fácil</p>
+              <p className="text-gray-600 mt-1">de gerenciar</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl md:text-4xl font-bold text-[#9d261e]">+Barato</p>
+              <p className="text-gray-600 mt-1">que o convite convecional</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl md:text-4xl font-bold text-[#9d261e] ">+Completo</p>
+              <p className="text-gray-600 mt-1">com respostas</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl md:text-4xl font-bold text-[#9d261e]">+3</p>
+              <p className="text-gray-600 mt-1">Temas</p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+      
+      {/* Features Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Simplifique seus convites</h2>
+            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+              O Rabicho transforma a maneira como você cria e gerencia convites para seus eventos especiais.
+            </p>
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className={`rounded-xl p-6 cursor-pointer transition-all duration-300 ${index === activeFeature ? feature.color : 'bg-white'} ${index === activeFeature ? 'text-white' : 'text-gray-800'} shadow-lg`}
+                onClick={() => setActiveFeature(index)}
+                whileHover={{ scale: 1.03 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div className={`rounded-full w-12 h-12 flex items-center justify-center mb-4 ${index === activeFeature ? 'bg-white/20' : feature.color}`}>
+                  {feature.icon}
                 </div>
-              </CardContent>
-            </Card>
+                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                <p className={`${index === activeFeature ? 'text-white/90' : 'text-gray-600'}`}>{feature.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* Examples Section */}
-      <section className="w-full py-12 md:py-16 bg-gray-50 dark:bg-gray-900" id="exemplos">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Exemplos de convites</h2>
-
-          <div className="flex justify-center items-center">
-           <ConvitesDemo />
+      
+     
+      
+      {/* Pricing Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Convites para todas as ocasiões</h2>
+            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+              Escolha o convite perfeito para o seu evento, desde pequenos encontros até grandes celebrações.
+            </p>
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {plans.map((plan, index) => (
+              <motion.div
+                key={index}
+                className={`rounded-xl p-6 ${plan.highlighted ? 'bg-gradient-to-b from-[#9d261e]/95 to-[#9d261e] text-white ring-4 ring-[#9d261e]/20' : 'bg-white text-gray-800'} shadow-xl relative`}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ translateY: -10 }}
+              >
+                {plan.highlighted && (
+                  <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                    <span className="bg-yellow-400 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">
+                      Mais Popular
+                    </span>
+                  </div>
+                )}
+                
+                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">{plan.price}</span>
+                  {plan.period && <span className="text-sm opacity-80">{plan.period}</span>}
+                </div>
+                <p className={`mb-6 ${plan.highlighted ? 'text-white/80' : 'text-gray-600'}`}>{plan.description}</p>
+                
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start">
+                      <Check className={`w-5 h-5 mr-2 ${plan.highlighted ? 'text-white' : 'text-[#9d261e]'} shrink-0 mt-0.5`} />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto"
+                >
+                  <Link 
+                    href="/sign-up" 
+                    className={`w-full block text-center py-3 px-4 rounded-lg font-medium ${
+                      plan.highlighted 
+                        ? 'bg-white text-[#9d261e]' 
+                        : 'bg-[#9d261e] text-white'
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+                </motion.div>
+              </motion.div>
+            ))}
           </div>
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-20 bg-[#9d261e]">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center text-white"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold">Pronto para começar?</h2>
+            <p className="mt-4 text-lg text-white/80 max-w-2xl mx-auto">
+              Junte-se a milhares de usuários que já estão simplificando seus convites com o Rabicho.
+            </p>
+            <motion.div
+              className="mt-8"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/sign-up" className="inline-block bg-white text-[#9d261e] px-8 py-3 rounded-lg font-medium shadow-lg">
+                Criar minha conta
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
     </div>

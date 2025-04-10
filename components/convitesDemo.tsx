@@ -2,14 +2,15 @@
 import { useState } from 'react';
 import { Music, Users, Calendar, Mail, MapPin, Heart, Ghost, Cake } from 'lucide-react';
 import Link from 'next/link';
+type ConviteType = 'jantar' | 'halloween' | 'casamento';
 
 export default function ConvitesDemo() {
-  const [activeConvite, setActiveConvite] = useState('jantar');
-  
+  const [activeConvite, setActiveConvite] = useState<ConviteType>('jantar');
+
   // Dados dos convites
   const convites = {
     jantar: {
-      id:'9b5eefa4-d589-4e34-b2ed-7b7faef7e44f',
+      id: '9b5eefa4-d589-4e34-b2ed-7b7faef7e44f',
       titulo: "Jantar Especial na Casa dos Silva",
       tema: "elegante",
       plano: "Convite Básico",
@@ -24,7 +25,7 @@ export default function ConvitesDemo() {
       icon: <Cake className="w-6 h-6 md:w-8 md:h-8 text-indigo-500" />
     },
     halloween: {
-      id:'ca6b9e62-810e-4aee-8d0a-b7b3a9665dff',
+      id: 'ca6b9e62-810e-4aee-8d0a-b7b3a9665dff',
       titulo: "Noite de Halloween Assustadora",
       tema: "divertido",
       plano: "Convite Grupo",
@@ -39,7 +40,7 @@ export default function ConvitesDemo() {
       icon: <Ghost className="w-6 h-6 md:w-8 md:h-8 text-orange-500" />
     },
     casamento: {
-      id:'6003e505-332c-4c65-a66a-d8c9e5eb5bce',
+      id: '6003e505-332c-4c65-a66a-d8c9e5eb5bce',
       titulo: "Casamento de Maria e João",
       tema: "romantico",
       plano: "Convite Evento",
@@ -71,9 +72,9 @@ export default function ConvitesDemo() {
           </div>
         </div>
       </div>
-      
+
       <p className="mt-3 md:mt-4 text-sm md:text-base">{activeConviteData.descricao}</p>
-      
+
       <div className="mt-4 md:mt-6 space-y-2 md:space-y-3">
         <div className="flex items-center">
           <Calendar className="w-4 h-4 md:w-5 md:h-5 mr-2" />
@@ -92,11 +93,13 @@ export default function ConvitesDemo() {
           <span className="text-sm md:text-base">Música temática incluída</span>
         </div>
       </div>
-      
-      <div className="mt-6 md:mt-8 border-t pt-4 border-dashed border-gray-300">
-        <h3 className="font-semibold mb-2 text-sm md:text-base">Formulário de Confirmação</h3>
-        <Link href={`/invite/${activeConviteData.id}/response`} className="w-full py-2 px-4 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors text-sm md:text-base">
-          Responder ao convite
+
+      <div className="mt-6 md:mt-8 border-t pt-4 border-dashed border-gray-300 w-full">
+        <Link href={`/invite/${activeConviteData.id}/response`} >
+          <div className="w-full flex justify-center items-center py-2 px-4 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors text-sm md:text-base">
+            Ver convite
+          </div>
+
         </Link>
       </div>
     </div>
@@ -105,70 +108,70 @@ export default function ConvitesDemo() {
   return (
     <div className="p-2 md:p-4 w-full">
       <h1 className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">Demonstração de Convites</h1>
-      
+
       {/* Botões de seleção para telas maiores */}
       <div className="hidden md:flex justify-center space-x-4 mb-6 md:mb-8">
-        <button 
+        <button
           onClick={() => setActiveConvite('jantar')}
-          className={`px-4 py-2 rounded-lg ${activeConvite === 'jantar' 
-            ? 'bg-indigo-100 text-indigo-800 font-medium' 
+          className={`px-4 py-2 rounded-lg ${activeConvite === 'jantar'
+            ? 'bg-indigo-100 text-indigo-800 font-medium'
             : 'bg-gray-100 hover:bg-gray-200'}`}
         >
           Jantar (Básico)
         </button>
-        <button 
+        <button
           onClick={() => setActiveConvite('halloween')}
-          className={`px-4 py-2 rounded-lg ${activeConvite === 'halloween' 
-            ? 'bg-orange-100 text-orange-800 font-medium' 
+          className={`px-4 py-2 rounded-lg ${activeConvite === 'halloween'
+            ? 'bg-orange-100 text-orange-800 font-medium'
             : 'bg-gray-100 hover:bg-gray-200'}`}
         >
           Halloween (Grupo)
         </button>
-        <button 
+        <button
           onClick={() => setActiveConvite('casamento')}
-          className={`px-4 py-2 rounded-lg ${activeConvite === 'casamento' 
-            ? 'bg-rose-100 text-rose-800 font-medium' 
+          className={`px-4 py-2 rounded-lg ${activeConvite === 'casamento'
+            ? 'bg-rose-100 text-rose-800 font-medium'
             : 'bg-gray-100 hover:bg-gray-200'}`}
         >
           Casamento (Evento)
         </button>
       </div>
-      
+
       {/* Botões de seleção para dispositivos móveis (menu em linha) */}
       <div className="flex md:hidden justify-center mb-4">
         <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
-          <button 
+          <button
             onClick={() => setActiveConvite('jantar')}
-            className={`px-2 py-2 rounded-lg text-xs ${activeConvite === 'jantar' 
-              ? 'bg-indigo-100 text-indigo-800 font-medium' 
+            className={`px-2 py-2 rounded-lg text-xs ${activeConvite === 'jantar'
+              ? 'bg-indigo-100 text-indigo-800 font-medium'
               : 'bg-gray-100 hover:bg-gray-200'}`}
           >
             Jantar
           </button>
-          <button 
+          <button
             onClick={() => setActiveConvite('halloween')}
-            className={`px-2 py-2 rounded-lg text-xs ${activeConvite === 'halloween' 
-              ? 'bg-orange-100 text-orange-800 font-medium' 
+            className={`px-2 py-2 rounded-lg text-xs ${activeConvite === 'halloween'
+              ? 'bg-orange-100 text-orange-800 font-medium'
               : 'bg-gray-100 hover:bg-gray-200'}`}
           >
             Halloween
           </button>
-          <button 
+          <button
             onClick={() => setActiveConvite('casamento')}
-            className={`px-2 py-2 rounded-lg text-xs ${activeConvite === 'casamento' 
-              ? 'bg-rose-100 text-rose-800 font-medium' 
+            className={`px-2 py-2 rounded-lg text-xs ${activeConvite === 'casamento'
+              ? 'bg-rose-100 text-rose-800 font-medium'
               : 'bg-gray-100 hover:bg-gray-200'}`}
           >
             Casamento
           </button>
         </div>
       </div>
-      
+
       <ConvitePreview />
-      
+
       <div className="mt-4 md:mt-6 bg-gray-50 p-3 md:p-4 rounded-lg w-full max-w-md mx-auto text-xs md:text-sm">
         <p className="text-gray-600">
-          <strong>Informações do plano:</strong><br/>
+          <strong>Informações do plano:</strong><br />
           {activeConvite === 'jantar' && 'Convite Básico - Permite 1 resposta. Ideal para pequenos eventos pessoais.'}
           {activeConvite === 'halloween' && 'Convite Grupo - Permite 10 respostas. Perfeito para festas e reuniões.'}
           {activeConvite === 'casamento' && 'Convite Evento - Permite 100 respostas. Para grandes ocasiões como casamentos e formaturas.'}
