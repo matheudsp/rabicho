@@ -1,11 +1,10 @@
-// themeManager.ts
+
 import { useTheme } from 'next-themes';
 
-// Music options
 export interface MusicOption {
   id: string;
   title: string;
-  videoId: string;
+  url: string; 
 }
 
 // Theme options
@@ -25,11 +24,11 @@ export class ThemeManager {
   private static instance: ThemeManager;
   private currentTheme: string | undefined;
   
-  // Music options available
+  // Music options available - atualizando para usar URL completa
   private readonly _musicOptions: MusicOption[] = [
-    { id: "romantica", title: "Música Romântica", videoId: "jEIw_hUNcBs" },
-    { id: "elegante", title: "Música Elegante", videoId: "cLVMQo8nxKw" },
-    { id: "divertida", title: "Música Divertida", videoId: "ZbZSe6N_BXs" },
+    { id: "romantica", title: "Música Romântica", url: "" },
+    { id: "elegante", title: "Música Elegante", url: "" },
+    { id: "divertida", title: "Música Divertida", url: "https://www.youtube.com/watch?v=ZbZSe6N_BXs" },
   ];
 
   private constructor() {

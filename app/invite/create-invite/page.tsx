@@ -26,7 +26,7 @@ interface FormErrors {
 interface FormDataType {
   tituloConvite: string;
   tema: string;
-  musica: string | null;
+  musicaUrl: string;
 }
 
 export default function CreateInvite() {
@@ -41,7 +41,7 @@ export default function CreateInvite() {
   const [formData, setFormData] = useState<FormDataType>({
     tituloConvite: "",
     tema: "padrao",
-    musica: null
+    musicaUrl: ""
   });
   const [perguntas, setPerguntas] = useState<PerguntaOption[]>([]);
   const [novaPergunta, setNovaPergunta] = useState<PerguntaOption>({
@@ -58,11 +58,26 @@ export default function CreateInvite() {
   // Get current theme
   const currentTheme = getThemeById(formData.tema) || themeOptions[0];
 
-  // Function to get the video ID from the music key
-  const getMusicVideoId = (musicKey: string | null): string | null => {
-    if (!musicKey) return null;
-    const music = getMusicById(musicKey);
-    return music ? music.videoId : null;
+  // Função para extrair o ID do vídeo de uma URL do YouTube
+  // Função para extrair o ID do vídeo de uma URL do YouTube
+  const getMusicVideoId = (url: string): string | null => {
+    if (!url) return null;
+
+    // Padrão para URLs como https://www.youtube.com/watch?v=VIDEO_ID
+    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+    const watchMatch = url.match(watchRegex);
+
+    // Padrão para URLs encurtadas como https://youtu.be/VIDEO_ID
+    const shortRegex = /youtu\.be\/([^?&]+)/;
+    const shortMatch = url.match(shortRegex);
+
+    if (watchMatch && watchMatch[1]) {
+      return watchMatch[1];
+    } else if (shortMatch && shortMatch[1]) {
+      return shortMatch[1];
+    }
+
+    return null;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,20 +213,9 @@ export default function CreateInvite() {
   };
 
   // Music functions
-  const toggleMusic = (musicId: string): void => {
-    if (formData.musica === musicId) {
-      setFormData({
-        ...formData,
-        musica: null,
-      });
-      setIsMusicPlaying(false);
-    } else {
-      setFormData({
-        ...formData,
-        musica: musicId,
-      });
-      setIsMusicPlaying(true);
-    }
+  // Music functions
+  const toggleMusic = (): void => {
+    setIsMusicPlaying(!isMusicPlaying);
   };
 
   const handleSubmit = async (): Promise<void> => {
@@ -235,7 +239,7 @@ export default function CreateInvite() {
         .insert([{
           titulo: formData.tituloConvite,
           tema: formData.tema,
-          musica: formData.musica,
+          musica: formData.musicaUrl, // Agora salvamos a URL completa
           criado_por: user.id,
           pago: false,
         }])
@@ -364,28 +368,41 @@ export default function CreateInvite() {
               </div>
 
               {/* Music selection */}
+              {/* Music URL input */}
               <div>
                 <h3 className="text-primary font-medium mb-3 flex items-center">
                   <Music size={18} className="mr-2" />
-                  Música de fundo:
+                  Música de fundo (YouTube):
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {musicOptions.map((music) => (
-                    <button
-                      key={music.id}
-                      onClick={() => toggleMusic(music.id)}
-                      className={`p-3 rounded-lg transition-all ${formData.musica === music.id
-                        ? "bg-pink-100 text-pink-800 border-2 border-pink-300 dark:bg-pink-900 dark:text-pink-200 dark:border-pink-700 transform scale-105"
-                        : `bg-secondary text-secondary-foreground hover:bg-secondary/80`
-                        }`}
-                    >
-                      {music.title}
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  <input
+                    type="url"
+                    name="musicaUrl"
+                    value={formData.musicaUrl}
+                    onChange={handleInputChange}
+                    placeholder="Cola aqui a URL do YouTube (ex: https://www.youtube.com/watch?v=...)"
+                    className="w-full p-3 border rounded-lg bg-background focus:ring-2 focus:ring-ring outline-none border-input"
+                  />
+                  {formData.musicaUrl && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground truncate flex-1 mr-2">
+                        {formData.musicaUrl}
+                      </span>
+                      <button
+                        onClick={() => toggleMusic()}
+                        className={`px-3 py-1 rounded-lg transition-all border border-border ${isMusicPlaying
+                          ? `border border-border`
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                          }`}
+                      >
+                        {isMusicPlaying ? "Pausar" : "Tocar"}
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    A música será tocada quando o convidado abrir o convite.
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  A música será tocada quando o convidado abrir o convite.
-                </p>
               </div>
             </div>
 
@@ -402,12 +419,12 @@ export default function CreateInvite() {
       )}
 
       {/* Music Player (hidden iframe) */}
-      {formData.musica && isMusicPlaying && (
+      {formData.musicaUrl && isMusicPlaying && (
         <div style={{ display: "none" }}>
           <iframe
             width="560"
             height="315"
-            src={`https://www.youtube.com/embed/${getMusicVideoId(formData.musica)}?autoplay=1&loop=1&playlist=${getMusicVideoId(formData.musica)}`}
+            src={`https://www.youtube.com/embed/${getMusicVideoId(formData.musicaUrl)}?autoplay=1&loop=1&playlist=${getMusicVideoId(formData.musicaUrl)}`}
             title="YouTube music player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           ></iframe>
@@ -454,15 +471,16 @@ export default function CreateInvite() {
                     </span>
                   )}
                 </button>
-                {(formData.tema !== "padrao" || formData.musica) && (
+                {(formData.tema !== "padrao" || formData.musicaUrl) && (
                   <div className="mt-2 p-2 bg-background/50 rounded-lg text-sm">
                     <p className="font-medium text-center">
                       {formData.tema !== "padrao" && `Tema: ${getThemeById(formData.tema)?.name}`}
-                      {formData.tema !== "padrao" && formData.musica && " • "}
-                      {formData.musica && `Música: ${getMusicById(formData.musica)?.title}`}
+                      {formData.tema !== "padrao" && formData.musicaUrl && " • "}
+                      {formData.musicaUrl && "Música: "+formData.musicaUrl }
                     </p>
                   </div>
                 )}
+               
               </div>
             </div>
           </div>
@@ -564,10 +582,7 @@ export default function CreateInvite() {
                     <span className="text-muted-foreground">Tema:</span>
                     <span className="font-medium">{getThemeById(formData.tema)?.name || "Padrão"}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Música:</span>
-                    <span className="font-medium">{formData.musica ? getMusicById(formData.musica)?.title : "Nenhuma"}</span>
-                  </div>
+                  
                 </div>
               </div>
 
