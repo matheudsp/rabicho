@@ -51,23 +51,61 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   const [respondentName, setRespondentName] = useState<string>("");
   const [user, setUser] = useState<any>(null);
   const [limiteRespostasAlcancado, setLimiteRespostasAlcancado] = useState<boolean>(false);
-
+  const [isMusicPlaying, setIsMusicPlaying] = useState<boolean>(false);
+  const [hasInteracted, setHasInteracted] = useState<boolean>(false);
   // Estados para temas e música
   const [formData, setFormData] = useState<{ tema: string, musica: string | null }>({
     tema: "padrao",
     musica: null,
   });
-  const [isMusicPlaying, setIsMusicPlaying] = useState<boolean>(false);
+  const [musicName, setMusicName] = useState<string>("");
 
 
   // Get current theme
   const currentTheme = getThemeById(formData.tema) || themeOptions[0];
 
-  // Function to get the video ID from the music key
-  const getMusicVideoId = (musicKey: string | null): string | null => {
-    if (!musicKey) return null;
-    const music = getMusicById(musicKey);
-    return music ? music.url : null;
+
+  const getMusicVideoId = (url: string): string | null => {
+    if (!url) return null;
+
+    // Padrão para URLs como https://www.youtube.com/watch?v=VIDEO_ID
+    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+    const watchMatch = url.match(watchRegex);
+
+    // Padrão para URLs encurtadas como https://youtu.be/VIDEO_ID
+    const shortRegex = /youtu\.be\/([^?&]+)/;
+    const shortMatch = url.match(shortRegex);
+
+    if (watchMatch && watchMatch[1]) {
+      return watchMatch[1];
+    } else if (shortMatch && shortMatch[1]) {
+      return shortMatch[1];
+    }
+
+    return null;
+  };
+
+  // Extrair nome da música da URL
+  const extractMusicNameFromUrl = (url: string): string => {
+    if (!url) return "Música desconhecida";
+
+    try {
+      // Tentar obter o nome da música do objeto musicOptions
+      const musicOption = getMusicById(url);
+      if (musicOption?.title) {
+        return musicOption.title;
+      }
+
+      // Se não conseguir pelo ID, tenta extrair da URL (fallback)
+      const videoId = getMusicVideoId(url);
+      if (!videoId) return "Música desconhecida";
+
+      // Extrai o título do vídeo baseado no ID (simplificado)
+      // Na prática, isso requer uma chamada à API do YouTube
+      return "Música do YouTube";
+    } catch (error) {
+      return "Música desconhecida";
+    }
   };
 
   // Verificar se o usuário está autenticado
@@ -80,7 +118,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
     };
     checkAuth();
   }, [supabase]);
-  
+
   // Buscar dados do convite e formulário
   useEffect(() => {
     const fetchData = async () => {
@@ -118,7 +156,11 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
 
         if (conviteData.musica) {
           setFormData(prev => ({ ...prev, musica: conviteData.musica }));
-          setIsMusicPlaying(true);
+          // A música já começa tocando por padrão (isMusicPlaying é true)
+
+          // Definir o nome da música
+          const musicNameFromUrl = extractMusicNameFromUrl(conviteData.musica);
+          setMusicName(musicNameFromUrl);
         }
 
         // Buscar formulário
@@ -288,7 +330,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
     try {
       // Determinar o ID do convidado - usar ID do usuário se autenticado, ou gerar um ID anônimo
       const convidadoId = user ? user.id : `anon-${crypto.randomUUID()}`;
-      
+
       // Antes de inserir, verificar se ainda há respostas disponíveis
       if (convite.respostas_utilizadas >= convite.respostas_permitidas) {
         throw new Error("Limite de respostas atingido para este convite");
@@ -296,7 +338,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
 
       // Incrementar o contador de respostas
       await incrementarContadorRespostas();
-      
+
       // Preparar as respostas para inserção
       const respostasParaInserir = respostas.map((resposta) => ({
         pergunta_id: resposta.perguntaId,
@@ -333,20 +375,9 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   };
 
   // Music functions
-  const toggleMusic = (musicId: string): void => {
-    if (formData.musica === musicId) {
-      setFormData({
-        ...formData,
-        musica: null,
-      });
-      setIsMusicPlaying(false);
-    } else {
-      setFormData({
-        ...formData,
-        musica: musicId ?? null, // Garante que seja sempre null ou string
-      });
-      setIsMusicPlaying(true);
-    }
+  const toggleMusic = () => {
+    setIsMusicPlaying(!isMusicPlaying);
+    setHasInteracted(true);
   };
 
   // Renderizar animações baseadas no tema
@@ -394,21 +425,22 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
 
 
       {/* Music Player (hidden iframe) */}
-      {formData.musica && isMusicPlaying && (
-        <div style={{ display: "none" }}>
+
+      {formData.musica && hasInteracted && (
+        <div className="hidden">
           <iframe
-            width="560"
-            height="315"
-            src={`https://www.youtube.com/embed/${getMusicVideoId(formData.musica)}?autoplay=1&loop=1&playlist=${getMusicVideoId(formData.musica)}`}
+            width="1"
+            height="1"
+            src={`https://www.youtube.com/embed/${getMusicVideoId(formData.musica)}?autoplay=${isMusicPlaying ? '1' : '0'}&loop=1&playlist=${getMusicVideoId(formData.musica)}`}
             title="YouTube music player"
+            frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           ></iframe>
         </div>
       )}
 
- 
       {/* Content */}
-      <div className={`flex-1 p-4 border border-${currentTheme.borderClass} z-10` }>
+      <div className={`flex-1 p-4 border border-${currentTheme.borderClass} z-10`}>
         {formSubmitted ? (
           <div className={`${currentTheme.cardClass} p-6 rounded-lg text-center transition-all transform scale-100 animate-bounce-once`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -428,7 +460,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
             <h2 className="text-xl font-semibold mb-2">Limite de respostas atingido</h2>
             <p className="mt-1">Este convite atingiu o número máximo de respostas permitidas.</p>
             <p className="mt-4">Entre em contato com a pessoa que enviou o convite para mais informações.</p>
-            
+
             <div className="mt-6 pt-4 border-t border-border">
               <button
                 onClick={() => router.push('/')}
@@ -460,8 +492,30 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
                   <p className="font-medium text-center">
                     {formData.tema !== "padrao" && `Tema: ${getThemeById(formData.tema)?.name}`}
                     {formData.tema !== "padrao" && formData.musica && " • "}
-                    {formData.musica && `Música: ${getMusicById(formData.musica)?.title}`}
+                    {formData.musica && `Música: ${musicName || (getMusicById(formData.musica)?.title || "Música de fundo")}`}
                   </p>
+                  {formData.musica && !hasInteracted && (
+                    <div className="items-center justify-center flex mt-2 z-50">
+                      <button
+                        onClick={toggleMusic}
+                        className="flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg animate-pulse"
+                      >
+                        <Music size={18} />
+                        <span>Ouvir música</span>
+                      </button>
+                    </div>
+                  )}
+                  {formData.musica && hasInteracted && (
+                    <div className="mt-2 flex justify-center">
+                      <button
+                        onClick={toggleMusic}
+                        className="p-2 border border-border rounded-md flex items-center space-x-2 hover:bg-accent/50 transition-colors"
+                      >
+                        <Music size={16} />
+                        <span>{isMusicPlaying ? 'Pausar música' : 'Tocar música'}</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
