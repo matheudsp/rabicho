@@ -26,7 +26,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     async function fetchPlanos() {
       try {
         const response = await fetch(`/api/plans`);
-        
+
         if (!response.ok) {
           // Handle HTTP errors
           const errorData = await response.json();
@@ -35,13 +35,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           setLoading(false);
           return;
         }
-        
+
         const data = await response.json();
-        
+
         // Verifica se data é um array
         if (Array.isArray(data)) {
           setPlanos(data);
-          
+
           // Definir o plano padrão (médio)
           if (data.length > 0) {
             // Seleciona o plano do meio se houver mais de um
@@ -52,14 +52,14 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           console.error("Dados recebidos não são um array:", data);
           setPlanos([]); // Inicializa como array vazio para evitar erros
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Erro ao carregar planos:", error);
         setLoading(false);
       }
     }
-    
+
     fetchPlanos();
   }, []);
 
@@ -68,24 +68,31 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       alert("Por favor, selecione um plano");
       return;
     }
-    
+
     setPaymentProcessing(true);
-    
+
     try {
       // Primeiro, associar o plano ao convite
-      await fetch(`/api/invite/${id}/plan`, {
+      const planResponse = await fetch(`/api/invite/${id}/plan`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ planoId: selectedPlan }),
+        body: JSON.stringify({ planId: selectedPlan }),
       });
-      
+
+      if (!planResponse.ok) {
+        throw new Error("Falha ao associar o plano ao convite");
+      }
+
+      // Aguardar um momento para garantir que a associação seja concluída no banco de dados
+      // Isso é especialmente importante em ambientes serverless
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Em seguida, iniciar o checkout
       await createMercadoPagoCheckout({
         conviteId: id,
-        userEmail: email || undefined,
-        planoId: selectedPlan
+        userEmail: email || undefined
       });
     } catch (error) {
       console.error("Erro ao processar pagamento:", error);
@@ -101,7 +108,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       </div>
     );
   }
-  
+
   // Se não houver planos, mostrar mensagem
   if (planos.length === 0) {
     return (
@@ -114,15 +121,15 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="w-full px-4 py-6">
       <h1 className="text-xl font-bold mb-4">Selecione um Plano</h1>
-      
+
       <div className="flex flex-col gap-4 mb-6">
         {planos.map((plano) => (
-          <div 
-            key={plano.id} 
+          <div
+            key={plano.id}
             className={cn(
               "border rounded-lg p-4 cursor-pointer transition-all",
-              selectedPlan === plano.id 
-                ? "border-blue-500 bg-blue-50" 
+              selectedPlan === plano.id
+                ? "border-blue-500 bg-blue-50"
                 : "border-gray-200"
             )}
             onClick={() => setSelectedPlan(plano.id)}
@@ -131,14 +138,14 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
               <h2 className="text-lg font-semibold">{plano.nome}</h2>
               <div className={cn(
                 "h-4 w-4 rounded-full border-2",
-                selectedPlan === plano.id 
-                  ? "border-blue-500 bg-blue-500" 
+                selectedPlan === plano.id
+                  ? "border-blue-500 bg-blue-500"
                   : "border-gray-300"
               )}></div>
             </div>
-            
+
             <p className="text-gray-600 text-sm mb-3">{plano.descricao}</p>
-            
+
             <div className="flex justify-between items-center">
               <p className="text-2xl font-bold">
                 R$ {plano.preco.toFixed(2).replace('.', ',')}
@@ -150,7 +157,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           </div>
         ))}
       </div>
-      
+
       <div className="mb-5">
         <label htmlFor="email" className="block mb-2 text-sm font-medium">
           Seu e-mail (opcional)
@@ -167,7 +174,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           Enviaremos o recibo de pagamento para este e-mail
         </p>
       </div>
-      
+
       <button
         onClick={handleCheckout}
         disabled={!selectedPlan || paymentProcessing}

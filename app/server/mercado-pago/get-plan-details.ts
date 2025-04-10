@@ -17,6 +17,8 @@ interface ConviteWithPlano {
 }
 
 export async function getPlanDetails(conviteId: string) {
+  console.log(`Buscando detalhes do plano para o convite: ${conviteId}`);
+  
   const supabase = await createClient();
   
   // Buscar o convite e o plano associado
@@ -36,18 +38,32 @@ export async function getPlanDetails(conviteId: string) {
     .eq('id', conviteId)
     .single();
   
-  if (error || !data) {
-    throw new Error('Falha ao buscar detalhes do plano');
+  if (error) {
+    console.error(`Erro ao buscar convite ${conviteId}:`, error);
+    throw new Error(`Falha ao buscar detalhes do plano: ${error.message}`);
   }
+  
+  if (!data) {
+    console.error(`Nenhum convite encontrado com ID ${conviteId}`);
+    throw new Error('Convite não encontrado');
+  }
+  
+  console.log(`Dados do convite obtidos:`, data);
   
   // Garantir que temos os dados corretos
   const conviteData = data as unknown as ConviteWithPlano;
   
+  if (!conviteData.plano_id) {
+    console.error(`Convite ${conviteId} não tem um plano associado`);
+    throw new Error('Este convite não tem um plano associado');
+  }
+  
   if (!conviteData.planos) {
+    console.error(`Plano ${conviteData.plano_id} associado ao convite ${conviteId} não encontrado`);
     throw new Error('Plano não encontrado para este convite');
   }
   
-  return {
+  const result = {
     conviteId: conviteData.id,
     planoId: conviteData.plano_id,
     planoNome: conviteData.planos.nome,
@@ -55,4 +71,7 @@ export async function getPlanDetails(conviteId: string) {
     quantidadeRespostas: conviteData.planos.quantidade_respostas,
     preco: conviteData.planos.preco
   };
+  
+  console.log(`Detalhes do plano obtidos:`, result);
+  return result;
 }

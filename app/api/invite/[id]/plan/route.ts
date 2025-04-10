@@ -9,18 +9,24 @@ export async function PUT(
     const { planId } = await request.json();
     const inviteId = (await params).id;
 
+    console.log(`Atualizando plano do convite ${inviteId} para ${planId}`);
+
     const supabase = await createClient();
 
-    const { error } = await supabase
+    // Atualizar o plano_id do convite
+    const { error, data } = await supabase
       .from('convites')
       .update({ plano_id: planId })
-      .eq('id', inviteId);
+      .eq('id', inviteId)
+      .select('id, plano_id');
     
     if (error) {
+      console.error(`Erro ao atualizar plano:`, error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    console.log(`Plano atualizado com sucesso:`, data);
+    return NextResponse.json({ success: true, invite: data?.[0] });
   } catch (error) {
     console.error("Error updating plan:", error);
     return NextResponse.json({ error: "Failed to update plan" }, { status: 500 });

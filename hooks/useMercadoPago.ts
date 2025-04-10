@@ -11,6 +11,8 @@ const useMercadoPago = () => {
 
   async function createMercadoPagoCheckout(checkoutData: any) {
     try {
+      console.log("Iniciando checkout com dados:", checkoutData);
+      
       const response = await fetch("/api/mercado-pago/create-checkout", {
         method: "POST",
         headers: {
@@ -20,10 +22,22 @@ const useMercadoPago = () => {
       });
 
       const data = await response.json();
+      console.log("Resposta da API de checkout:", data);
+
+      if (!response.ok) {
+        console.error("Erro na API de checkout:", data.error || "Erro desconhecido");
+        throw new Error(data.error || "Falha ao criar checkout");
+      }
+
+      if (!data.initPoint) {
+        console.error("initPoint não encontrado na resposta:", data);
+        throw new Error("URL de checkout não encontrado na resposta");
+      }
 
       router.push(data.initPoint);
     } catch (error) {
-      console.log(error);
+      console.error("Erro no checkout:", error);
+      alert("Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.");
     }
   }
 
