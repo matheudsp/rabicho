@@ -10,6 +10,16 @@ type Convite = {
   criado_por: string;
   data_criacao: string;
   pago: boolean;
+  plano_id: number | null;
+  respostas_permitidas: number | null;
+  respostas_utilizadas: number | null;
+  plano?: {
+    id: number;
+    nome: string;
+    descricao: string;
+    quantidade_respostas: number;
+    preco: number;
+  } | null;
 };
 
 type Formulario = {
@@ -27,9 +37,19 @@ type Resposta = {
   convidado_id: string;
 };
 
-// Tipo estendido do convite com contagem de respostas
-type ConviteComRespostas = Convite & {
+// Tipo estendido do convite com contagem de respostas e informações do plano
+// Este tipo deve corresponder exatamente ao esperado pelo componente HomePage
+type ConviteComDetalhes = {
+  id: string;
+  titulo: string;
+  criado_por: string;
+  data_criacao: string;
+  pago: boolean;
+  plano_id: number | null;
+  respostas_permitidas: number | null;
+  respostas_utilizadas: number | null;
   respostas_count: number;
+  plano_nome?: string | null;
 };
 
 export default async function Page() {
@@ -43,11 +63,20 @@ export default async function Page() {
     return redirect("/sign-in");
   }
 
-  // Buscar convites e contagem de respostas em uma única operação
   try {
+    // Buscar convites com informações do plano
     const { data: convites, error } = await supabase
       .from("convites")
-      .select("*")
+      .select(`
+        *,
+        plano:plano_id(
+          id,
+          nome,
+          descricao,
+          quantidade_respostas,
+          preco
+        )
+      `)
       .eq("criado_por", user.id)
       .order("data_criacao", { ascending: false });
 
@@ -56,8 +85,17 @@ export default async function Page() {
       return <div>Erro ao carregar convites</div>;
     }
 
+    // Processar os convites para adicionar informações do plano
+    const convitesProcessados: ConviteComDetalhes[] = convites.map(convite => {
+      return {
+        ...convite,
+        respostas_count: 0,
+        plano_nome: convite.plano?.nome || null
+      };
+    });
+
     // Otimizar a contagem de respostas com uma única consulta para todos os convites
-    const convitesIds = (convites || []).map(convite => convite.id);
+    const convitesIds = convitesProcessados.map(convite => convite.id);
     
     // Query para buscar formulários para todos os convites de uma vez
     const { data: formularios, error: formError } = await supabase
@@ -81,14 +119,9 @@ export default async function Page() {
     
     // Se não há formulários, retornar convites com contagem zero
     if (todosFormularioIds.length === 0) {
-      const convitesComRespostasZero: ConviteComRespostas[] = (convites || []).map(convite => ({
-        ...convite,
-        respostas_count: 0
-      }));
-      
       return (
         <HomePage
-          convites={convitesComRespostasZero}
+          convites={convitesProcessados}
           userLoggedIn={!!user}
         />
       );
@@ -116,14 +149,9 @@ export default async function Page() {
     
     // Se não há perguntas, retornar convites com contagem zero
     if (todasPerguntasIds.length === 0) {
-      const convitesComRespostasZero: ConviteComRespostas[] = (convites || []).map(convite => ({
-        ...convite,
-        respostas_count: 0
-      }));
-      
       return (
         <HomePage
-          convites={convitesComRespostasZero}
+          convites={convitesProcessados}
           userLoggedIn={!!user}
         />
       );
@@ -147,7 +175,7 @@ export default async function Page() {
     });
     
     // Calcular contagem de convidados únicos para cada convite
-    const convitesComRespostas: ConviteComRespostas[] = (convites || []).map(convite => {
+    const convitesComRespostas: ConviteComDetalhes[] = convitesProcessados.map(convite => {
       // Obter IDs de formulários para este convite
       const formularioIdsDoConvite = formulariosPorConvite[convite.id] || [];
       

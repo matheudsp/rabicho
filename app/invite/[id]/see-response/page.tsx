@@ -8,6 +8,7 @@ import { DownloadIcon, ChevronLeft, BarChart2, FileText, Share2 } from "lucide-r
 
 import { BalloonAnimation, GlitterAnimation, HeartAnimation } from "@/components/themes/themesAnimations";
 import { useThemeManager } from "@/components/themes/themeManager";
+import ShareModal from "@/components/shareModal";
 
 // Interfaces
 interface Pergunta {
@@ -136,7 +137,7 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
             convidado_id
           `)
           .in("pergunta_id", perguntasData.map(p => p.id));
-          
+
         if (respostasError) throw respostasError;
 
         // Buscar os textos das opções para as respostas de múltipla escolha
@@ -379,13 +380,15 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
           </div>
 
           <div className="flex space-x-2">
-            <button
-              onClick={shareResults}
-              className="p-2 rounded-full hover:bg-primary-foreground/10"
-              aria-label="Compartilhar"
-            >
-              <Share2 size={20} />
-            </button>
+            <ShareModal
+              itemId={id}
+              pathType="see-response"
+              buttonText=""
+
+              modalTitle="Compartilhar página de respostas"
+              asDropdownItem={false}
+            />
+
             <button
               onClick={exportToCSV}
               className="p-2 rounded-full hover:bg-primary-foreground/10"
@@ -417,8 +420,8 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
         <div className="flex border-b mb-6">
           <button
             className={`py-2 px-4 font-medium flex items-center ${activeTab === 'individual'
-                ? `border-b-2 ${currentTheme.borderClass} text-primary`
-                : 'text-muted-foreground'
+              ? `border-b-2 ${currentTheme.borderClass} text-primary`
+              : 'text-muted-foreground'
               }`}
             onClick={() => setActiveTab('individual')}
           >
@@ -427,8 +430,8 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
           </button>
           <button
             className={`py-2 px-4 font-medium flex items-center ${activeTab === 'resumo'
-                ? `border-b-2 ${currentTheme.borderClass} text-primary`
-                : 'text-muted-foreground'
+              ? `border-b-2 ${currentTheme.borderClass} text-primary`
+              : 'text-muted-foreground'
               }`}
             onClick={() => setActiveTab('resumo')}
           >
@@ -472,8 +475,8 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
                     onClick={nextResposta}
                     disabled={currentResposta === respostasAgrupadas.length - 1}
                     className={`p-2 rounded ${currentResposta === respostasAgrupadas.length - 1
-                        ? 'text-muted-foreground'
-                        : `text-primary hover:${currentTheme.cardClass}`
+                      ? 'text-muted-foreground'
+                      : `text-primary hover:${currentTheme.cardClass}`
                       }`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

@@ -1,6 +1,6 @@
 'use client'
 
-import { InfoIcon, PlusCircle, Share2, Trash2, Eye, CheckCircle, XCircle, EllipsisVertical, Copy, X } from "lucide-react";
+import { InfoIcon, PlusCircle, Share2, Trash2, Eye, CheckCircle, XCircle, EllipsisVertical, Copy, X, CreditCard } from "lucide-react";
 import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
@@ -11,14 +11,18 @@ import ShareModalItem from "@/components/shareModal";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import { deleteInvite } from "@/app/actions";
 
-// Tipo para os convites baseado no seu banco de dados
+// Tipo atualizado para os convites incluindo informações do plano
 type Convite = {
   id: string;
-  titulo: string;  // Alterado de nome_destinatario para titulo
+  titulo: string;
   criado_por: string;
   data_criacao: string;
   pago: boolean;
-  respostas_count: number;  // Adicionado contador de respostas
+  respostas_count: number;
+  plano_id?: number | null;
+  plano_nome?: string | null;
+  respostas_permitidas?: number | null;
+  respostas_utilizadas?: number | null;
 };
 
 type HomePageProps = {
@@ -62,6 +66,15 @@ export default function HomePage({ convites, userLoggedIn }: HomePageProps) {
     }
   };
 
+  const handlePaymentClick = (conviteId: string) => {
+    router.push(`/invite/${conviteId}/payment`);
+  };
+
+  // Formatador de data
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
   return (
     <div className="flex-1 w-full min-h-[70vh] mx-auto gap-4 flex flex-col border-x border-border">
       <div className="w-full">
@@ -72,7 +85,7 @@ export default function HomePage({ convites, userLoggedIn }: HomePageProps) {
       </div>
 
       {/* Botão para criar novo convite */}
-      <div className="flex justify-center ">
+      <div className="flex justify-center">
         <Link
           href="/invite/create-invite"
           className="flex items-center gap-2 bg-primary text-primary-foreground rounded-md px-4 py-2 font-medium hover:bg-primary/90 transition-colors"
@@ -90,54 +103,107 @@ export default function HomePage({ convites, userLoggedIn }: HomePageProps) {
           <div className="flex flex-col gap-3">
             {convites.map((convite: Convite) => (
               <div key={convite.id} className="border rounded-md p-4 shadow-sm">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold">{convite.titulo}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(convite.data_criacao).toLocaleDateString('pt-BR')}
-                      </span>
-                      <span className="text-xs flex items-center gap-1 text-blue-600">
-                        {convite.pago ? (<><CheckCircle size={12} /> {convite.respostas_count || 0} resposta(s)</>) : ('Aguardando pagamento')}
-                      </span>
+                {/* Cabeçalho do convite */}
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-base">{convite.titulo}</h3>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(convite.data_criacao)}
+                  </span>
+                </div>
+                
+                {/* Informações do status */}
+                <div className="mb-3">
+                  {convite.pago ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle size={14} />
+                        <span className="text-sm font-medium">Pago</span>
+                      </div>
+                      
+                      {convite.plano_nome && (
+                        <div className="flex items-center text-sm text-blue-600 ml-5">
+                          <span>Plano: {convite.plano_nome}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center text-xs text-muted-foreground ml-5">
+                        <span>
+                          {convite.respostas_count} respostas recebidas 
+                          {convite.respostas_permitidas ? 
+                            ` (${convite.respostas_utilizadas || 0}/${convite.respostas_permitidas} utilizadas)` : 
+                            ''}
+                        </span>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-1 text-amber-600">
+                        <XCircle size={14} />
+                        <span className="text-sm font-medium">Aguardando pagamento</span>
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-1 text-xs bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100"
+                        onClick={() => handlePaymentClick(convite.id)}
+                      >
+                        <CreditCard size={14} className="mr-1" /> Efetuar pagamento
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Barra de ações */}
+                <div className="flex justify-between items-center border-t pt-2 mt-2">
+                  <div className="flex gap-2">
+                    {convite.pago && (
+                      <Link
+                        href={`/invite/${convite.id}/see-response`}
+                        className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Eye size={14} /> Ver respostas
+                      </Link>
+                    )}
                   </div>
+                  
                   <DropdownMenu.Root>
                     <DropdownMenu.Trigger asChild>
-                      <Button variant="outline" className="text-sm">
-                        <EllipsisVertical size={18} />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <EllipsisVertical size={16} />
                       </Button>
                     </DropdownMenu.Trigger>
 
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content
-                        className="bg-background border border-border flex flex-col rounded-md shadow-md p-2"
+                        className="bg-background border border-border flex flex-col rounded-md shadow-md p-2 min-w-[150px]"
                         align="end"
-                        sideOffset={8}
+                        sideOffset={5}
                       >
-                        <DropdownMenu.Item asChild className="p-2 rounded hover:border flex-row flex items-center justify-between hover:border-border">
-                          <Link
-                            href={`/invite/${convite.id}/see-response`}
-                            className="p-2 rounded-md flex-wrap ease-linear hover:bg-accent"
-                            aria-label="Ver respostas"
-                            title="Ver respostas"
-                          >
-                            Ver respostas
-                            <Eye size={18} />
-                          </Link>
-                        </DropdownMenu.Item>
+                        {convite.pago && (
+                          <DropdownMenu.Item asChild className="p-2 rounded hover:bg-accent flex items-center justify-between">
+                            <Link href={`/invite/${convite.id}/see-response`}>
+                              Ver respostas
+                              <Eye size={16} />
+                            </Link>
+                          </DropdownMenu.Item>
+                        )}
                         
-                        <ShareModalItem conviteId={convite.id} />
+                        {!convite.pago && (
+                          <DropdownMenu.Item asChild className="p-2 rounded hover:bg-accent flex items-center justify-between text-green-600">
+                            <Link href={`/invite/${convite.id}/payment`}>
+                              Pagar convite
+                              <CreditCard size={16} />
+                            </Link>
+                          </DropdownMenu.Item>
+                        )}
                         
-                        <DropdownMenu.Item asChild className="p-2 rounded hover:border flex-row flex items-center justify-between hover:border-border">
-                          <button
-                            className="p-2 rounded-md hover:bg-accent text-destructive"
-                            aria-label="Excluir convite"
-                            title="Excluir convite"
-                            onClick={() => handleDeleteClick(convite)}
-                          >
+                        <ShareModalItem itemId={convite.id} />
+                        
+                        <DropdownMenu.Item asChild className="p-2 rounded hover:bg-accent flex items-center justify-between text-destructive">
+                          <button onClick={() => handleDeleteClick(convite)}>
                             Excluir
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                           </button>
                         </DropdownMenu.Item>
                       </DropdownMenu.Content>
@@ -160,7 +226,7 @@ export default function HomePage({ convites, userLoggedIn }: HomePageProps) {
         <DeleteConfirmationModal
           isOpen={deleteModalOpen}
           conviteId={selectedConvite.id}
-          conviteName={selectedConvite.titulo} // Alterado de nome_destinatario para titulo
+          conviteName={selectedConvite.titulo}
           onClose={handleCloseModal}
           onConfirm={handleConfirmDelete}
           isDeleting={isDeleting}
