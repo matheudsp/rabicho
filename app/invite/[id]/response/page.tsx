@@ -49,6 +49,8 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   const [errors, setErrors] = useState<FormErrors>({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [respondentName, setRespondentName] = useState<string>("");
+  const [user, setUser] = useState<any>(null);
+  const [limiteRespostasAlcancado, setLimiteRespostasAlcancado] = useState<boolean>(false);
 
   // Estados para temas e música
   const [formData, setFormData] = useState<{ tema: string, musica: string | null }>({
@@ -68,6 +70,17 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
     return music ? music.videoId : null;
   };
 
+  // Verificar se o usuário está autenticado
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (!error && data?.user) {
+        setUser(data.user);
+      }
+    };
+    checkAuth();
+  }, [supabase]);
+  
   // Buscar dados do convite e formulário
   useEffect(() => {
     const fetchData = async () => {
@@ -84,8 +97,17 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
         if (conviteError) throw conviteError;
         if (!conviteData) throw new Error("Convite não encontrado");
 
-        // Não verificamos mais se já foi respondido
-        // Removido: if (conviteData.respondido) { ... }
+        // Verificar se o convite está pago e tem respostas disponíveis
+        if (conviteData.pago === false) {
+          toast.error("Este convite ainda não foi pago.");
+          router.push('/home');
+          return;
+        }
+
+        if (conviteData.respostas_utilizadas >= conviteData.respostas_permitidas) {
+          setLimiteRespostasAlcancado(true);
+          // Ainda mostramos a página, mas desabilitamos o formulário
+        }
 
         setConvite(conviteData);
 
@@ -236,6 +258,19 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
     return Object.keys(newErrors).length === 0;
   };
 
+  // Função para incrementar contador de respostas no convite
+  const incrementarContadorRespostas = async () => {
+    const { error } = await supabase
+      .from('convites')
+      .update({ respostas_utilizadas: convite.respostas_utilizadas + 1 })
+      .eq('id', id);
+
+    if (error) {
+      console.error("Erro ao atualizar contador de respostas:", error);
+      throw new Error("Erro ao atualizar contador de respostas");
+    }
+  };
+
   // Enviar respostas
   const submitRespostas = async () => {
     if (!validateForm()) {
@@ -243,19 +278,31 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
       return;
     }
 
+    if (limiteRespostasAlcancado) {
+      toast.error("Limite de respostas atingido para este convite.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      // Gerar um ID aleatório para usuários não autenticados
-      // Isso evita ter que verificar sessão de autenticação
-      const anonUserId = `anon-${crypto.randomUUID()}`;
+      // Determinar o ID do convidado - usar ID do usuário se autenticado, ou gerar um ID anônimo
+      const convidadoId = user ? user.id : `anon-${crypto.randomUUID()}`;
+      
+      // Antes de inserir, verificar se ainda há respostas disponíveis
+      if (convite.respostas_utilizadas >= convite.respostas_permitidas) {
+        throw new Error("Limite de respostas atingido para este convite");
+      }
+
+      // Incrementar o contador de respostas
+      await incrementarContadorRespostas();
       
       // Preparar as respostas para inserção
       const respostasParaInserir = respostas.map((resposta) => ({
         pergunta_id: resposta.perguntaId,
         resposta_texto: resposta.resposta_texto || null,
         resposta_opcao: resposta.resposta_opcao || null,
-        convidado_id: anonUserId, // Usando ID anônimo para todos os casos
+        convidado_id: convidadoId, // Usando ID do usuário ou anônimo
         nome_respondente: respondentName // Mantendo o nome do respondente
       }));
 
@@ -382,12 +429,39 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
 
             {formData.tema === "divertido" && <ConfettiExplosion />}
           </div>
+        ) : limiteRespostasAlcancado ? (
+          <div className={`${currentTheme.cardClass} p-6 rounded-lg text-center transition-all border border-destructive`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-destructive mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h2 className="text-xl font-semibold mb-2">Limite de respostas atingido</h2>
+            <p className="mt-1">Este convite atingiu o número máximo de respostas permitidas.</p>
+            <p className="mt-4">Entre em contato com a pessoa que enviou o convite para mais informações.</p>
+            
+            <div className="mt-6 pt-4 border-t border-border">
+              <button
+                onClick={() => router.push('/')}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Voltar à Página Inicial
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             {/* Informações do Convite */}
             <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg mb-6 transition-all border border-border transform hover:scale-[1.01] duration-300`}>
               <h2 className="text-lg font-semibold mb-4">{convite.titulo}</h2>
               <p className={`${currentTheme.textClass} opacity-80`}>Você foi convidado(a) a responder este formulário.</p>
+
+              {user && (
+                <p className="mt-2 text-sm opacity-70">Você está autenticado como {user.email}</p>
+              )}
+
+              {/* Informações do plano */}
+              <div className="mt-3 text-sm">
+                <p>Respostas: {convite.respostas_utilizadas} de {convite.respostas_permitidas} utilizadas</p>
+              </div>
 
               {/* Theme and Music display */}
               {(formData.tema !== "padrao" || formData.musica) && (
