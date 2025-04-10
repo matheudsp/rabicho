@@ -429,7 +429,7 @@ export default function CreateInvite() {
       )}
 
       {/* Content */}
-      <div className={`flex-1 p-4 border border-${currentTheme.borderClass}`}>
+      <div className={`flex-1 p-4 border border-${currentTheme.borderClass} z-10`}>
         {currentStep === 1 && (
           <div className="space-y-6">
             <div className={`${currentTheme.cardClass} p-4 rounded-lg shadow-sm`}>

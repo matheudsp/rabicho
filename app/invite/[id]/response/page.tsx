@@ -58,7 +58,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
     musica: null,
   });
   const [isMusicPlaying, setIsMusicPlaying] = useState<boolean>(false);
-  const [showThemeSelector, setShowThemeSelector] = useState<boolean>(false);
+
 
   // Get current theme
   const currentTheme = getThemeById(formData.tema) || themeOptions[0];
@@ -67,7 +67,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
   const getMusicVideoId = (musicKey: string | null): string | null => {
     if (!musicKey) return null;
     const music = getMusicById(musicKey);
-    return music ? music.videoId : null;
+    return music ? music.url : null;
   };
 
   // Verificar se o usuário está autenticado
@@ -388,7 +388,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
       {formData.tema !== "padrao" && renderThemeAnimations()}
 
       {/* Header */}
-      <header className="bg-primary text-primary-foreground p-4 text-center shadow-md sticky top-0 z-10">
+      <header className="bg-primary text-primary-foreground p-4 text-center shadow-md sticky top-0 z-50">
         <h1 className="text-xl font-bold">Responder Convite</h1>
       </header>
 
@@ -406,18 +406,9 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* Show theme selector button when hidden */}
-      {!showThemeSelector && (
-        <button
-          onClick={() => setShowThemeSelector(true)}
-          className="fixed top-20 right-4 z-20 bg-card p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
-        >
-          <Palette size={18} className="text-primary" />
-        </button>
-      )}
-
+ 
       {/* Content */}
-      <div className={`flex-1 p-4 border border-${currentTheme.borderClass}`}>
+      <div className={`flex-1 p-4 border border-${currentTheme.borderClass} z-10` }>
         {formSubmitted ? (
           <div className={`${currentTheme.cardClass} p-6 rounded-lg text-center transition-all transform scale-100 animate-bounce-once`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -450,7 +441,7 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
         ) : (
           <>
             {/* Informações do Convite */}
-            <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg mb-6 transition-all border border-border transform hover:scale-[1.01] duration-300`}>
+            <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg mb-6 transition-all  transform hover:scale-[1.01] duration-300 z-50`}>
               <h2 className="text-lg font-semibold mb-4">{convite.titulo}</h2>
               <p className={`${currentTheme.textClass} opacity-80`}>Você foi convidado(a) a responder este formulário.</p>
 
@@ -498,12 +489,12 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
             </div>
 
             {/* Formulário */}
-            <div className="space-y-6">
+            <div className="space-y-6 ">
               {perguntas.map((pergunta, index) => (
                 <div
                   key={pergunta.id}
                   className={`${currentTheme.cardClass} border ${errors[`pergunta_${pergunta.id}`] ? 'border-destructive' : currentTheme.borderClass
-                    } rounded-lg p-6 shadow-lg transition-all duration-300`}
+                    } rounded-lg p-6 shadow-lg transition-all duration-300 `}
                 >
                   <h3 className={`text-lg font-medium mb-4 ${currentTheme.textClass}`}>
                     {index + 1}. {pergunta.texto}

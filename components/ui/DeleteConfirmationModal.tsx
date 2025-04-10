@@ -33,7 +33,7 @@ export default function DeleteConfirmationModal({
 
         <div className="mb-6">
           <p className="mb-2">
-            Tem certeza que deseja excluir o convite para <strong>{conviteName}</strong>?
+            Tem certeza que deseja excluir o <strong>{conviteName}</strong>?
           </p>
           <p className="text-sm text-muted-foreground">
             Esta ação não pode ser desfeita e todas as respostas associadas serão removidas permanentemente.
