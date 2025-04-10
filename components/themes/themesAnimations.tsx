@@ -1,27 +1,33 @@
 import React, { useMemo } from 'react';
 
 export const HeartAnimation = ({ isDark }: { isDark: boolean }) => {
-  // Use useMemo to ensure the random positions are calculated only once
+  // Create hearts with more varied animations
   const hearts = useMemo(() => {
-    return [...Array(20)].map((_, i) => ({
+    return [...Array(25)].map((_, i) => ({
       left: `${Math.random() * 100}%`,
       animationDuration: `${15 + Math.random() * 20}s`,
       animationDelay: `${Math.random() * 5}s`,
-      size: `${20 + Math.random() * 20}px`
+      size: `${15 + Math.random() * 25}px`,
+      opacity: 0.5 + Math.random() * 0.5,
+      rotate: Math.random() > 0.5 ? `${Math.random() * 20}deg` : `-${Math.random() * 20}deg`,
+      scale: 0.8 + Math.random() * 0.4
     }));
-  }, []); // Empty dependency array means this runs only once on mount
+  }, []);
   
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
       {hearts.map((heart, i) => (
         <div
           key={i}
-          className={`absolute animate-float ${isDark ? "text-rose-700" : "text-rose-500"} opacity-70`}
+          className={`absolute animate-float ${isDark ? "text-rose-700 hover:text-rose-500" : "text-rose-500 hover:text-rose-600"}`}
           style={{
             left: heart.left,
-            top: `-50px`,
+            top: `-80px`,
             animationDuration: heart.animationDuration,
             animationDelay: heart.animationDelay,
+            opacity: heart.opacity,
+            transform: `rotate(${heart.rotate}) scale(${heart.scale})`,
+            transition: 'color 0.5s ease'
           }}
         >
           <svg
@@ -40,33 +46,40 @@ export const HeartAnimation = ({ isDark }: { isDark: boolean }) => {
 };
 
 export const GlitterAnimation = ({ isDark }: { isDark: boolean }) => {
-  // Use useMemo to ensure the random positions are calculated only once
-  const glitters = useMemo(() => {
-    return [...Array(30)].map((_, i) => ({
+  // Create more dynamic sparkles with star shapes and movement
+  const sparkles = useMemo(() => {
+    return [...Array(40)].map((_, i) => ({
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      width: `${2 + Math.random() * 6}px`,
-      height: `${2 + Math.random() * 6}px`,
+      size: `${3 + Math.random() * 8}px`,
       opacity: 0.3 + Math.random() * 0.7,
-      animationDuration: `${3 + Math.random() * 4}s`,
+      animationDuration: `${2 + Math.random() * 4}s`,
       animationDelay: `${Math.random() * 5}s`,
+      type: Math.random() > 0.5 ? 'circle' : 'star',
+      color: isDark 
+        ? [`bg-indigo-400`, `bg-purple-300`, `bg-blue-300`, `bg-white`][Math.floor(Math.random() * 4)]
+        : [`bg-indigo-300`, `bg-purple-200`, `bg-blue-200`, `bg-white`][Math.floor(Math.random() * 4)]
     }));
-  }, []);
+  }, [isDark]);
   
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {glitters.map((glitter, i) => (
+      {sparkles.map((sparkle, i) => (
         <div
           key={i}
-          className={`absolute ${isDark ? "bg-indigo-400" : "bg-indigo-300"} rounded-full animate-pulse-fade`}
+          className={`absolute ${sparkle.color} ${sparkle.type === 'circle' ? 'rounded-full' : 'star-shape'} animate-pulse-fade`}
           style={{
-            left: glitter.left,
-            top: glitter.top,
-            width: glitter.width,
-            height: glitter.height,
-            opacity: glitter.opacity,
-            animationDuration: glitter.animationDuration,
-            animationDelay: glitter.animationDelay,
+            left: sparkle.left,
+            top: sparkle.top,
+            width: sparkle.size,
+            height: sparkle.size,
+            opacity: sparkle.opacity,
+            animationDuration: sparkle.animationDuration,
+            animationDelay: sparkle.animationDelay,
+            boxShadow: `0 0 ${parseInt(sparkle.size) * 2}px ${parseInt(sparkle.size) / 2}px rgba(255, 255, 255, 0.7)`,
+            ...(sparkle.type === 'star' ? {
+              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+            } : {})
           }}
         ></div>
       ))}
