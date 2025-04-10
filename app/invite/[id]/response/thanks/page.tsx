@@ -8,10 +8,13 @@ import Link from "next/link";
 export default function Agradecimento({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { id:conviteId } = use(params); 
+  const { id: conviteId } = use(params);
   const [convite, setConvite] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const supabase = createClient();
+
+  // Obter o nome do respondente dos parâmetros de pesquisa
+  const nomeRespondente = searchParams.get('name');
 
   useEffect(() => {
     if (!conviteId) {
@@ -65,11 +68,11 @@ export default function Agradecimento({ params }: { params: Promise<{ id: string
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          
+
           <h2 className="text-2xl font-bold text-card-foreground mb-4">Sua Resposta Foi Registrada!</h2>
-          
+
           <p className="text-muted-foreground mb-6">
-            Obrigado, {convite?.nome_destinatario}! Sua resposta foi enviada com sucesso.
+            Obrigado, {nomeRespondente}! Sua resposta foi enviada com sucesso.
           </p>
 
           <div className="border-t border-border pt-6 mt-6">
@@ -79,8 +82,6 @@ export default function Agradecimento({ params }: { params: Promise<{ id: string
           </div>
         </div>
       </main>
-
-    
     </div>
   );
 }

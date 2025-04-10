@@ -273,9 +273,8 @@ export default function ResponderConvite({ params }: { params: Promise<{ id: str
 
       // Redirecionar para página de agradecimento após 2 segundos
       setTimeout(() => {
-        router.push(`/invite/${id}/response/thanks`);
+        router.push(`/invite/${id}/response/thanks?nome=${encodeURIComponent(respondentName)}`);
       }, 2000);
-
     } catch (error) {
       // Melhor tratamento de erro
       const errorMessage = error instanceof Error ? error.message : String(error);
