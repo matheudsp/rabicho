@@ -11,7 +11,6 @@ export async function PUT(
 
     const supabase = await createClient();
 
-    // Change 'invites' to 'convites' to match your database schema
     const { error } = await supabase
       .from('convites')
       .update({ plano_id: planId })
