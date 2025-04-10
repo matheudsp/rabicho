@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { DownloadIcon, ChevronLeft, BarChart2, FileText, Share2 } from "lucide-react";
+import { DownloadIcon, ChevronLeft, BarChart2, FileText, Search, User, Users, Filter } from "lucide-react";
 
 import { BalloonAnimation, GlitterAnimation, HeartAnimation } from "@/components/themes/themesAnimations";
 import { useThemeManager } from "@/components/themes/themeManager";
@@ -30,10 +30,12 @@ interface Resposta {
   resposta_opcao?: number;
   convidado_id: string;
   opcao_texto?: string;
+  nome_respondente?: string; // Adicionado campo para o nome do respondente
 }
 
 interface RespostaAgrupada {
   convidado_id: string;
+  nome_respondente: string; // Adicionado campo para o nome do respondente
   respostas: Resposta[];
 }
 
@@ -52,6 +54,13 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
   const [respostasAgrupadas, setRespostasAgrupadas] = useState<RespostaAgrupada[]>([]);
   const [activeTab, setActiveTab] = useState<'individual' | 'resumo'>('individual');
   const [currentResposta, setCurrentResposta] = useState<number>(0);
+  
+  // Estados para filtro de respondentes
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [selectedRespondente, setSelectedRespondente] = useState<string>('todos');
+  const [filteredRespostas, setFilteredRespostas] = useState<RespostaAgrupada[]>([]);
+  const [respondentes, setRespondentes] = useState<{id: string, nome: string}[]>([]);
 
   // Estado para tema
   const [formData, setFormData] = useState({
@@ -60,6 +69,17 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
 
   // Get current theme
   const currentTheme = getThemeById(formData.tema) || themeOptions[0];
+
+  // Aplicar filtros às respostas
+  useEffect(() => {
+    if (selectedRespondente === 'todos') {
+      setFilteredRespostas(respostasAgrupadas);
+    } else {
+      setFilteredRespostas(respostasAgrupadas.filter(r => r.convidado_id === selectedRespondente));
+    }
+    // Resetar o índice da resposta atual quando mudar o filtro
+    setCurrentResposta(0);
+  }, [selectedRespondente, respostasAgrupadas]);
 
   // Buscar dados do convite, formulário e respostas
   useEffect(() => {
@@ -126,7 +146,7 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
 
         setPerguntas(perguntasCompletas);
 
-        // Buscar respostas - CORREÇÃO: remover o filtro .neq("resposta_texto", "")
+        // Buscar respostas incluindo nome_respondente
         const { data: respostasData, error: respostasError } = await supabase
           .from("respostas")
           .select(`
@@ -134,7 +154,8 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
             pergunta_id,
             resposta_texto,
             resposta_opcao,
-            convidado_id
+            convidado_id,
+            nome_respondente
           `)
           .in("pergunta_id", perguntasData.map(p => p.id));
 
@@ -158,21 +179,38 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
           })
         );
 
-        // Agrupar respostas por convidado
+        // Agrupar respostas por convidado e incluir nome_respondente
         const respostasAgrupadas: RespostaAgrupada[] = [];
+        const respondentesList: {id: string, nome: string}[] = [];
+        
         respostasComOpcoes.forEach(resposta => {
           const index = respostasAgrupadas.findIndex(r => r.convidado_id === resposta.convidado_id);
+          
+          // Usar nome_respondente ou "Anônimo" se não estiver disponível
+          const nomeRespondente = resposta.nome_respondente || "Anônimo";
+          
           if (index === -1) {
             respostasAgrupadas.push({
               convidado_id: resposta.convidado_id,
+              nome_respondente: nomeRespondente,
               respostas: [resposta]
             });
+            
+            // Adicionar à lista de respondentes para o filtro
+            if (!respondentesList.some(r => r.id === resposta.convidado_id)) {
+              respondentesList.push({
+                id: resposta.convidado_id,
+                nome: nomeRespondente
+              });
+            }
           } else {
             respostasAgrupadas[index].respostas.push(resposta);
           }
         });
 
+        setRespondentes(respondentesList);
         setRespostasAgrupadas(respostasAgrupadas);
+        setFilteredRespostas(respostasAgrupadas);
 
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
@@ -207,14 +245,14 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
   // Exportar respostas para CSV
   const exportToCSV = () => {
     // Preparar cabeçalhos
-    const headers = ['Convidado ID'];
+    const headers = ['Nome do Respondente', 'Convidado ID'];
     perguntas.forEach(pergunta => {
       headers.push(pergunta.texto);
     });
 
     // Preparar linhas de dados
-    const rows = respostasAgrupadas.map(grupo => {
-      const row = [grupo.convidado_id];
+    const rows = filteredRespostas.map(grupo => {
+      const row = [grupo.nome_respondente, grupo.convidado_id];
 
       perguntas.forEach(pergunta => {
         const resposta = grupo.respostas.find(r => r.pergunta_id === pergunta.id);
@@ -245,30 +283,11 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `respostas-convite-${convite.nome_destinatario}.csv`);
+    link.setAttribute('download', `respostas-convite-${convite.titulo}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  // Compartilhar resultados
-  const shareResults = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${convite.titulo}`,
-          text: `Confira as respostas do(a) ${convite.titulo}!`,
-          url: window.location.href
-        });
-      } catch (error) {
-        console.error('Erro ao compartilhar:', error);
-      }
-    } else {
-      // Fallback para navegadores que não suportam a API Web Share
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copiado para a área de transferência!');
-    }
   };
 
   // Função para renderizar gráficos de resumo (para perguntas de múltipla escolha)
@@ -282,8 +301,8 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
         contagemOpcoes[opcao.id] = 0;
       });
 
-      // Contar respostas
-      respostasAgrupadas.forEach(grupo => {
+      // Contar respostas (aplicar filtro se não estiver em "todos")
+      filteredRespostas.forEach(grupo => {
         const resposta = grupo.respostas.find(r => r.pergunta_id === pergunta.id);
         if (resposta && resposta.resposta_opcao) {
           contagemOpcoes[resposta.resposta_opcao]++;
@@ -314,12 +333,15 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
               </div>
             );
           })}
-          <p className="text-xs text-muted-foreground mt-1">Total de respostas: {totalRespostas}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Total de respostas: {totalRespostas}
+            {selectedRespondente !== 'todos' && ' (filtrado por respondente)'}
+          </p>
         </div>
       );
     } else if (pergunta.tipo === "resposta_curta") {
       // Para perguntas de resposta curta, mostrar apenas o número de respostas
-      const totalRespostas = respostasAgrupadas.filter(grupo =>
+      const totalRespostas = filteredRespostas.filter(grupo =>
         grupo.respostas.some(r => r.pergunta_id === pergunta.id && r.resposta_texto)
       ).length;
 
@@ -327,6 +349,7 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
         <div>
           <p className="text-sm text-muted-foreground">
             {totalRespostas} respostas recebidas. Veja as respostas individuais na aba "Respostas Individuais".
+            {selectedRespondente !== 'todos' && ' (filtrado por respondente)'}
           </p>
         </div>
       );
@@ -335,7 +358,7 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
 
   // Navegar entre respostas individuais
   const nextResposta = () => {
-    if (currentResposta < respostasAgrupadas.length - 1) {
+    if (currentResposta < filteredRespostas.length - 1) {
       setCurrentResposta(currentResposta + 1);
     }
   };
@@ -344,6 +367,15 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
     if (currentResposta > 0) {
       setCurrentResposta(currentResposta - 1);
     }
+  };
+
+  // Filtrar respondentes por pesquisa
+  const filtrarRespondentes = () => {
+    if (!searchTerm) return respondentes;
+    
+    return respondentes.filter(resp => 
+      resp.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   };
 
   // Renderizar página de carregamento
@@ -380,11 +412,18 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
           </div>
 
           <div className="flex space-x-2">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`p-2 rounded-full ${isFilterOpen ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}
+              aria-label="Filtrar"
+            >
+              <Filter size={20} />
+            </button>
+            
             <ShareModal
               itemId={id}
               pathType="see-response"
               buttonText=""
-
               modalTitle="Compartilhar página de respostas"
               asDropdownItem={false}
             />
@@ -400,15 +439,68 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
         </div>
       </header>
 
+      {/* Filtro de respondentes - aparece quando o botão de filtro é clicado */}
+     
+
       {/* Content */}
       <div className={`flex-1 p-4 border border-${currentTheme.borderClass}`}>
 
         {/* Informações do Convite */}
-        <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg mb-6 transition-all transform hover:scale-[1.01] duration-300`}>
+        {isFilterOpen && (
+        <div className="bg-background ">
+          <div className="mb-4">
+            <label htmlFor="filter-respondent" className="block text-sm font-medium mb-2">
+              Filtrar por respondente
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="filter-respondent"
+                className="w-full p-2 pl-8 rounded-md border border-border bg-background"
+                placeholder="Buscar respondente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Search size={16} className="absolute left-2 top-3 text-muted-foreground" />
+            </div>
+          </div>
+          
+          <div className="max-h-48 overflow-y-auto mb-2 rounded-md bg-muted p-1">
+            <button
+              onClick={() => setSelectedRespondente('todos')}
+              className={`flex items-center w-full p-2 rounded-md ${
+                selectedRespondente === 'todos' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'hover:bg-background'
+              }`}
+            >
+              <Users size={16} className="mr-2" />
+              <span>Todos os respondentes</span>
+            </button>
+            
+            {filtrarRespondentes().map((respondente) => (
+              <button
+                key={respondente.id}
+                onClick={() => setSelectedRespondente(respondente.id)}
+                className={`flex items-center w-full p-2 rounded-md ${
+                  selectedRespondente === respondente.id 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-background'
+                }`}
+              >
+                <User size={16} className="mr-2" />
+                <span>{respondente.nome}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+        <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg mb-6 border-border border transition-all transform hover:scale-[1.01] duration-300`}>
           <h2 className="text-lg font-semibold mb-2">{convite.titulo}</h2>
           <div className="flex flex-col justify-center items-start">
             <p className={`${currentTheme.textClass} opacity-80`}>
-              {respostasAgrupadas.length} {respostasAgrupadas.length === 1 ? 'resposta' : 'respostas'} recebidas
+              {filteredRespostas.length} de {respostasAgrupadas.length} {respostasAgrupadas.length === 1 ? 'resposta' : 'respostas'} 
+              {selectedRespondente !== 'todos' ? ' (filtrado)' : ''}
             </p>
             <p className={`text-sm ${currentTheme.textClass} opacity-70`}>
               Criado em {new Date(convite.data_criacao).toLocaleDateString()}
@@ -441,14 +533,18 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
         </div>
 
         {/* Sem respostas */}
-        {respostasAgrupadas.length === 0 ? (
+        {filteredRespostas.length === 0 ? (
           <div className={`${currentTheme.cardClass} p-8 rounded-lg text-center`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto mb-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h3 className="text-lg font-medium mb-2">Nenhuma resposta ainda</h3>
+            <h3 className="text-lg font-medium mb-2">
+              {respostasAgrupadas.length === 0 ? "Nenhuma resposta ainda" : "Nenhuma resposta encontrada para o filtro aplicado"}
+            </h3>
             <p className="text-muted-foreground">
-              Quando seus convidados responderem ao convite, as respostas aparecerão aqui.
+              {respostasAgrupadas.length === 0 
+                ? "Quando seus convidados responderem ao convite, as respostas aparecerão aqui." 
+                : "Tente ajustar ou remover o filtro para ver outras respostas."}
             </p>
           </div>
         ) : (
@@ -457,40 +553,49 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
             {activeTab === 'individual' && (
               <div className="space-y-6">
                 {/* Navegação entre respostas */}
-                <div className="flex justify-between items-center mb-4">
-                  <button
-                    onClick={prevResposta}
-                    disabled={currentResposta === 0}
-                    className={`p-2 rounded ${currentResposta === 0 ? 'text-muted-foreground' : `text-primary hover:${currentTheme.cardClass}`
-                      }`}
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+                  {/* Nome do respondente em destaque */}
+                  <div className="mb-2 sm:mb-0 order-1 sm:order-2 bg-primary/10 px-4 py-2 rounded-full">
+                    <span className="font-medium text-primary">
+                      {filteredRespostas[currentResposta]?.nome_respondente || "Anônimo"}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center order-2 sm:order-1">
+                    <button
+                      onClick={prevResposta}
+                      disabled={currentResposta === 0}
+                      className={`p-2 rounded ${currentResposta === 0 ? 'text-muted-foreground' : `text-primary hover:${currentTheme.cardClass}`
+                        }`}
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
 
-                  <span className="text-sm font-medium">
-                    Resposta {currentResposta + 1} de {respostasAgrupadas.length}
-                  </span>
+                    <span className="text-sm font-medium mx-2">
+                      {currentResposta + 1} de {filteredRespostas.length}
+                    </span>
 
-                  <button
-                    onClick={nextResposta}
-                    disabled={currentResposta === respostasAgrupadas.length - 1}
-                    className={`p-2 rounded ${currentResposta === respostasAgrupadas.length - 1
-                      ? 'text-muted-foreground'
-                      : `text-primary hover:${currentTheme.cardClass}`
-                      }`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
+                    <button
+                      onClick={nextResposta}
+                      disabled={currentResposta === filteredRespostas.length - 1}
+                      className={`p-2 rounded ${currentResposta === filteredRespostas.length - 1
+                        ? 'text-muted-foreground'
+                        : `text-primary hover:${currentTheme.cardClass}`
+                        }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Respostas individuais */}
-                {respostasAgrupadas.length > 0 && (
+                {filteredRespostas.length > 0 && (
                   <div className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg`}>
                     <div className="space-y-6">
                       {perguntas.map((pergunta) => {
-                        const resposta = respostasAgrupadas[currentResposta]?.respostas.find(
+                        const resposta = filteredRespostas[currentResposta]?.respostas.find(
                           r => r.pergunta_id === pergunta.id
                         );
 
@@ -521,6 +626,17 @@ export default function VerRespostas({ params }: { params: Promise<{ id: string 
             {/* Tab de Resumo */}
             {activeTab === 'resumo' && (
               <div className="space-y-8">
+                {selectedRespondente !== 'todos' && (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-3 rounded-md mb-4">
+                    <p className="flex items-center text-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      Mostrando resumo apenas das respostas de: <strong className="ml-1">{respondentes.find(r => r.id === selectedRespondente)?.nome || "Anônimo"}</strong>
+                    </p>
+                  </div>
+                )}
+                
                 {perguntas.map((pergunta) => (
                   <div key={pergunta.id} className={`${currentTheme.cardClass} p-6 rounded-lg shadow-lg`}>
                     <h3 className="font-medium mb-4">{pergunta.texto}</h3>
