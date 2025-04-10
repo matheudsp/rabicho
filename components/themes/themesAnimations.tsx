@@ -5,42 +5,18 @@ export const HeartAnimation = ({ isDark }: { isDark: boolean }) => {
   const hearts = useMemo(() => {
     return [...Array(25)].map((_, i) => ({
       left: `${Math.random() * 100}%`,
-      animationDuration: `${15 + Math.random() * 20}s`,
-      animationDelay: `${Math.random() * 5}s`,
-      size: `${15 + Math.random() * 25}px`,
-      opacity: 0.5 + Math.random() * 0.5,
+      animationDuration: `${8 + Math.random() * 15}s`, // Faster animation
+      animationDelay: `${Math.random() * 3}s`, // Less delay
+      size: `${20 + Math.random() * 30}px`, // Bigger hearts
+      opacity: 0.6 + Math.random() * 0.4, // More opacity
       rotate: Math.random() > 0.5 ? `${Math.random() * 20}deg` : `-${Math.random() * 20}deg`,
-      scale: 0.8 + Math.random() * 0.4
+      scale: 0.9 + Math.random() * 0.4
     }));
   }, []);
   
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {hearts.map((heart, i) => (
-        <div
-          key={i}
-          className={`absolute animate-float ${isDark ? "text-rose-700 hover:text-rose-500" : "text-rose-500 hover:text-rose-600"}`}
-          style={{
-            left: heart.left,
-            top: `-80px`,
-            animationDuration: heart.animationDuration,
-            animationDelay: heart.animationDelay,
-            opacity: heart.opacity,
-            transform: `rotate(${heart.rotate}) scale(${heart.scale})`,
-            transition: 'color 0.5s ease'
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-6 h-6"
-            style={{ width: heart.size }}
-          >
-            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-          </svg>
-        </div>
-      ))}
+      
     </div>
   );
 };

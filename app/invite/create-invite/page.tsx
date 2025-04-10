@@ -300,18 +300,14 @@ export default function CreateInvite() {
     }
   };
 
-  // Render theme animations based on selected theme
+ 
   const renderThemeAnimations = () => {
-    // Agora podemos pegar o isDarkMode diretamente do ThemeManager através do hook
-    const isDarkMode = currentTheme.textClass.includes("text-rose-200") ||
-      currentTheme.textClass.includes("text-indigo-200") ||
-      currentTheme.textClass.includes("text-amber-200");
-
+    
     switch (formData.tema) {
       case "romantico":
-        return <HeartAnimation isDark={isDarkMode} />;
+        return <HeartAnimation isDark={currentTheme.textClass.includes("text-rose-200")} />;
       case "elegante":
-        return <GlitterAnimation isDark={isDarkMode} />;
+        return <GlitterAnimation isDark={currentTheme.textClass.includes("text-indigo-200")} />;
       case "divertido":
         return <BalloonAnimation />;
       default:
@@ -321,8 +317,9 @@ export default function CreateInvite() {
 
   return (
     <div className={`mx-auto ${currentTheme.bgClass} ${currentTheme.textClass} min-h-[75vh] flex flex-col`}>
+      
       {/* Theme animations */}
-      {formData.tema !== "padrao" && renderThemeAnimations()}
+      {renderThemeAnimations()}
 
       {/* Header */}
       <header className="bg-primary text-primary-foreground p-4 text-center shadow-md sticky top-0 z-10">
